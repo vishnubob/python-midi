@@ -1,0 +1,14 @@
+#!/usr/bin/python
+
+import midi
+import sys
+
+histogram = [0] * 11
+midifile = sys.argv[1]
+stream = midi.read_midifile(midifile)
+for event in stream.iterevents():
+    if isinstance(event, midi.NoteEvent):
+        idx = event.pitch / 12
+        histogram[idx] += 1
+print histogram
+stream.textdump()

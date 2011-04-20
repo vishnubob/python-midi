@@ -1,0 +1,260 @@
+=Python MIDI=
+
+Python, for all its amazing ability out of the box, does not provide you with
+an easy means to manipulate MIDI data.  There are probably about ten different
+python packages out there that accomplish some part of this goal, but there is
+nothing that is totally comprehensive.
+
+This toolkit aims to furfill this goal.  In particular, it strives to provide a
+high level framework that is independant of hardware.  It tries to offer a
+reasonable object granularity to make MIDI streams a painless thing to
+manipulate, sequence, record, and playback.  It's important to have a good
+concept of time, and the event framework provides automatic hooks so you don't
+have to calculate ticks to wall clock, for example. 
+
+This MIDI Python toolkit represents about two years of scattered work.  If you
+are someone like me, who has spent a long time looking for a Python MIDI
+framework, than this might be a good fit.  It's not perfect, but it has a large
+feature set to offer.
+
+=Features=
+
+* High level class types that represent individual MIDI events.
+* A multitrack aware container, that allows you to manage your MIDI events.
+* A tempo map that actively keeps track of tempo changes within a track.
+* A reader and writer, so you can read and write your MIDI tracks to disk.
+
+=Sequencer=
+
+If you use this toolkit under Linux, you can take advantage of ALSA's
+sequencer.  There is a SWIG wrapper and a high level sequencer interface that
+hides the ALSA details as best it can.  This sequencer understands the higher
+level Event framework, and will convert these Events to structures accessible
+to ALSA.  It tries to do as much as the hardwork for you as possible, including
+adjusting the queue for tempo changes during playback.  You can also record
+MIDI events, and with the right set of calls, the ALSA sequencer will timestamp
+your MIDI tracks at the moment the event triggers an OS hardware interrupt.
+The timing is extremely accurate, even though you are using Python to manage
+it.
+
+I am extremely interested in supporting OS-X and Win32 sequencers as well, but
+I need platform mavens who can help me.  Are you that person?  Please contact
+me if you would like to help.
+
+=Example Usage=
+
+==Building a track from scratch==
+
+Python 2.4.3 (#2, Apr 27 2006, 14:43:58)
+
+[GCC 4.0.3 (Ubuntu 4.0.3-1ubuntu5)] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import midi
+>>> t = midi.new_stream(resolution=120, tempo=200)
+>>> print t
+<midi.midi.EventStream object at 0xb7d8bfcc>
+>>> print x.resolution
+120
+>>> t.textdump()
+End of Track @0 0ms C0 T0
+Set Tempo @0 0ms C0 T0 [ mpqn: 300000 tempo: 200 ]
+
+new_stream() builds a midi.StreamEvent object, and it creates a tempo event in
+that stream at tick 0, hence the @0.  C0 means channel 0, which can go as high
+as 15.  T0 means track 0, which can go as high as 256 (i think).  0ms and @0
+means the same thing.  @0 is the tick time, and 0ms means it occurs at
+0milliseconds after playback starts, what I refer to as wall clock.  
+
+===Side Note: What is a MIDI Tick?===
+
+The problem with ticks is that they don't give you any information about when
+they occur without knowing two other pieces of information, the resolution, and
+the tempo.  The code handles these issues for you so all you have to do is
+think about things in terms of ms, or ticks, if you care about the beat.  
+
+A tick represents the lowest level resolution of a MIDI track.  Tempo is always
+analogous with Beats per Minute (BPM) which is the same thing as Quarter notes
+per Minute (QPM).  The Resolution is also known as the Pulses per Quarter note
+(PPQ).  It analogous to Ticks per Beat (TPM).
+
+Tempo is set by two things.  First, a saved MIDI file encodes an initial
+Resolution and Tempo.  You use these values to initialize the sequencer timer.
+The Resolution should be considered static to a track, as well as the
+sequencer.  During MIDI playback, the MIDI file may have encoded sequenced
+(that is, timed) Tempo change events.  These events will modulate the Tempo at
+the time they specify.  The Resolution, however, can not change from its
+initial value during playback.
+
+Under the hood, MIDI represents Tempo in microseconds.  In other words, you
+convert Tempo to Microseconds per Beat.  If the Tempo was 120 BPM, the python
+code to convert to microseconds looks like this:
+
+>>> 60 * 1000000 / 120
+500000
+
+This says the Tempo is 500,000 microseconds per beat.  This, in combination
+with the Resolution, will allow you to convert ticks to time.  If there are
+500,000 microseconds per beat, and if the Resolution is 1,000 than one tick is
+how much time?
+
+>>> 500000 / 1000
+500
+>>> 500 / 1000000.0
+0.00050000000000000001
+
+In other words, one tick represents .0005 seconds of time or half a
+millisecond.  Increase the Resolution and this number gets smaller, the inverse
+as the Resolution gets smaller.  Same for Tempo.
+
+Although MIDI encodes Time Signatures, it has no impact on the Tempo.  However,
+here is a quick refresher on Time Signatures:
+
+http://en.wikipedia.org/wiki/Time_signature
+
+==Creating Note On / Note Off Events==
+
+A Note On Event specifies a few things:
+
+- pitch: a value between 0 and 127
+- velocity: a value representing the force you hit the key 
+            (on a piano, for example), between 0 and 127
+- tick: when the event occurred
+- channel: MIDI supports up to 16 channels on one bus, value between 0 and 15
+
+Here is how you would build this:
+
+>>> on = midi.NoteOnEvent()
+>>> on.channel = 2
+>>> on.pitch = midi.G_3
+>>> on.velocity = 100
+>>> on.tick = 200
+>>> print on
+Note On @200 0ms C2 T0 [ G-3(43) 100 ]
+
+The tick time is set, but the wall clock time in milliseconds is not.  That's
+because we need a tempo first, and for that, we need to add the event to a
+track.
+
+>>> t.add_event(on)
+>>> t.textdump()
+End of Track @201 502ms C0 T0
+Set Tempo @0 0ms C0 T0 [ mpqn: 300000 tempo: 200 ]
+Note On @200 500ms C2 T0 [ G-3(43) 100 ]
+
+With the context of a tempo, the wall clock time can be calculated.  The
+tracking code also maintains a singleton EndOfTrackEvent.  You can always
+get at this event using:
+
+>>> t.endoftrack
+<midi.midi.EndOfTrackEvent object at 0xb7d9220c>
+>>> print t.endoftrack
+End of Track @201 502ms C0 T0
+
+This allows you to easily predict how long a song will take to completely
+playback, event wise (ignoring issues of sustain, for example).
+
+If you look at the source to midi.py, you will notice it builds a bunch of
+constants in the beginning.  These allow you to specify notes using a more
+familiar notation, like G_3, or As_7 or Db_2.  A warning, however.  Even
+though the pitch will always be the correct key, it might not be in the
+correct octave.  In other words, I enumerate the octave numbers from 0 up.
+some software starts at -2 or -3, and only go as high as 8 or 7.  There is no
+agreement on how to enumerate the octaves because the MIDI specification
+doesn't say anything about octave number.  It only specifies the value for
+middle C.
+
+==Writing our Track to Disk==
+
+It's easy to save your work, using the helper function provided by the midi
+module.
+
+>>> midi.write_midifile(t, "first.mid")
+
+==Reading our Track back from Disk==
+
+It's just as easy to load your MIDI file from disk.
+
+>>> z = midi.read_midifile("first.mid")
+>>> z.textdump()
+End of Track @202 505ms C0 T0
+Set Tempo @0 0ms C0 T0 [ mpqn: 300000 tempo: 200 ]
+Note On @200 500ms C2 T0 [ G-3(43) 100 ]
+
+==Using the ALSA Sequencer==
+
+The ALSA sequencer module is a relatively new addition, and works well, but may
+change over time to accommodate future sequencer platforms.  I tried to make it
+as feature complete as possible, and it does some power stuff.  For example,
+you can enumerate your MIDI hardware using the "HardwareSequencer"
+
+>>> import midi.sequencer as sequencer
+>>> s = sequencer.SequencerHardware()
+>>> print s
+] client(129) "__sequencer__"
+] client(64) "EMU10K1 MPU-401 (UART)"
+]   port(0) [r, w, sender, receiver] "EMU10K1 MPU-401 (UART)"
+] client(0) "System"
+]   port(1) [r, sender] "Announce"
+]   port(0) [r, w, sender] "Timer"
+] client(65) "Emu10k1 WaveTable"
+]   port(3) [w, receiver] "Emu10k1 Port 3"
+]   port(2) [w, receiver] "Emu10k1 Port 2"
+]   port(1) [w, receiver] "Emu10k1 Port 1"
+]   port(0) [w, receiver] "Emu10k1 Port 0"
+] client(63) "OSS sequencer"
+]   port(0) [w] "Receiver"
+] client(62) "Midi Through"
+]   port(0) [r, w, sender, receiver] "Midi Through Port-0"
+
+This allows you to look up client numbers and ports using it's lookup methods:
+
+>>> s["EMU10K1 MPU-401 (UART)"].client
+64
+>>> s["EMU10K1 MPU-401 (UART)"]["EMU10K1 MPU-401 (UART)"].port
+0
+
+Using these numbers, you can open a SequencerWriter()
+
+>>> client_name = 'EMU10K1 MPU-401 (UART)'
+>>> port_name = 'EMU10K1 MPU-401 (UART)'
+>>> hardware = sequencer.SequencerHardware()
+>>> client, port = hardware.get_client_and_port(client_name, port_name)
+>>> s = sequencer.SequencerWrite(sequencer_resolution=120)
+>>> s.subscribe_port(client, port)
+
+And now you can start writing events, using iterevents() from the track and
+event_write() from the sequencer:
+
+def play(stream, client, port):
+    ppq = self.stream.resolution
+    seq = sequencer.SequencerWrite(sequencer_resolution=ppq)
+    seq.subscribe_port(client, port)
+    start = time.time()
+    seq.start_sequencer()
+    for event in stream.iterevents():
+        ret = seq.event_write(event, tick=True)
+    now = time.time()
+    eot = stream.endoftrack
+    songlen = eot.msdelay / 1000.0
+    remainder = (start + songlen) - now
+    time.sleep(remainder + .5)
+
+Reading events is not much different, except you would use seq.event_read().
+There is also a polling interface, and the option to set all of this to non
+blocking.  Finally, there is a Duplex sequencer, that allows you to read and
+write your queue at the same time.  This is good for maintaining a metronome,
+for example, that is tick for tick the same as the input you would be
+receiving.
+
+=Thanks=
+
+I originally wrote this to drive the electro-mechanical instruments of Ensemble
+Robot, which is a boston based group of artists, programmers, and engineers.
+This API, however, has applications beyond controlling this equipment.  For
+more information about Ensemble Robot, please visit:
+
+http://www.ensemblerobot.org/
+
+-giles hall <ghall [at] csh [dot] rit [dot] edu> 10/07/2006
+
+

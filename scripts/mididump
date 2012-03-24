@@ -13,7 +13,7 @@ midifile = sys.argv[1]
 pattern = midi.read_midifile(midifile)
 
 for track in pattern:
-    # Distribution of notes
+    # Distribution of notes for this track
     histogram = [0] * 11
 
     for event in track:

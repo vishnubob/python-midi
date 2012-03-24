@@ -2,13 +2,17 @@
 
 import midi
 import sys
+import pickle
 
 histogram = [0] * 11
 midifile = sys.argv[1]
-stream = midi.read_midifile(midifile)
-for event in stream.iterevents():
+
+pattern = midi.read_midifile(midifile)
+
+for event in pattern:
     if isinstance(event, midi.NoteEvent):
         idx = event.pitch / 12
         histogram[idx] += 1
+
 print histogram
-stream.textdump()
+print repr(pattern)

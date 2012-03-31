@@ -3,6 +3,8 @@
 %feature("newobject");
 
 %{
+#include "include/seq_event.h"
+
 #include <alsa/asoundlib.h>
 
 snd_seq_t*

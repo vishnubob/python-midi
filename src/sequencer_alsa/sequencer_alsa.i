@@ -14,7 +14,10 @@ open_client(const char *name, const char *type, int stream, int mode)
     int err;
     err = snd_seq_open(&handle, type, stream, mode);
     if (err < 0)
+    {
+            /* XXX: set global error */
             return NULL;
+    }
     snd_seq_set_client_name(handle, name);
     return handle;
 }

@@ -73,17 +73,18 @@ class Sequencer(object):
         raise "ALSAError[%d]: %s" % (errcode, strerr)
 
     def _init_handle(self):
-        err = S.open_client(self.alsa_sequencer_name,
+        ret = S.open_client(self.alsa_sequencer_name,
                             self.alsa_sequencer_type,
                             self.alsa_sequencer_stream,
                             self.alsa_sequencer_mode)
-        if err < 0: self._error(err)
-        self.client = err
+        if ret == None:
+            # XXX: global error
+            self._error(ret)
+        self.client = ret
         self.client_id = S.snd_seq_client_id(self.client)
         self.output_buffer_size = S.snd_seq_get_output_buffer_size(self.client)
         self.input_buffer_size = S.snd_seq_get_input_buffer_size(self.client)
         self._set_poll_descriptors()
-
 
     def _init_port(self):
         err = S.snd_seq_create_simple_port(self.client,

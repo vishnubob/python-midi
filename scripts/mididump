@@ -2,13 +2,25 @@
 
 import midi
 import sys
+import pickle
 
-histogram = [0] * 11
+if len(sys.argv) != 2:
+    print "Usage: {0} <midifile>".format(sys.argv[0])
+    sys.exit(2)
+
 midifile = sys.argv[1]
-stream = midi.read_midifile(midifile)
-for event in stream.iterevents():
-    if isinstance(event, midi.NoteEvent):
-        idx = event.pitch / 12
-        histogram[idx] += 1
-print histogram
-stream.textdump()
+
+pattern = midi.read_midifile(midifile)
+
+for track in pattern:
+    # Distribution of notes for this track
+    histogram = [0] * 11
+
+    for event in track:
+        if isinstance(event, midi.NoteEvent):
+            idx = event.pitch / 12
+            histogram[idx] += 1
+
+    print histogram
+
+print repr(pattern)

@@ -12,7 +12,7 @@ __base__ = {
     'py_modules':['midi.containers', 'midi.__init__', 'midi.events', 'midi.util', 'midi.fileio', 'midi.constants'],
     'ext_modules':[],
     'ext_package':'',
-    'scripts':['scripts/mididump'],
+    'scripts':['scripts/mididump', 'scripts/mididumphw'],
 }
 
 def setup_alsa(ns):
@@ -35,7 +35,7 @@ def configure_platform():
     ns = __base__.copy()
     # currently, only the ALSA sequencer is supported
     if platform.startswith('linux'):
-        #setup_alsa(ns)
+        setup_alsa(ns)
         pass
     else:
         print "No sequencer available for '%s' platform." % platform

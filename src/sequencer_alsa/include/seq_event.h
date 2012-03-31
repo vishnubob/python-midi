@@ -1,7 +1,7 @@
 /**
  * \file include/seq_event.h
  * \brief Application interface library for the ALSA driver
- * \author Jaroslav Kysela <perex@suse.cz>
+ * \author Jaroslav Kysela <perex@perex.cz>
  * \author Abramo Bagnara <abramo@alsa-project.org>
  * \author Takashi Iwai <tiwai@suse.de>
  * \date 1998-2001
@@ -133,25 +133,6 @@ enum snd_seq_event_type {
 	/** Ports disconnected; event data type = #snd_seq_connect_t */
 	SND_SEQ_EVENT_PORT_UNSUBSCRIBED,
 
-	/** Sample select; event data type = #snd_seq_ev_sample_control_t */
-	SND_SEQ_EVENT_SAMPLE = 70,
-	/** Sample cluster select; event data type = #snd_seq_ev_sample_control_t */
-	SND_SEQ_EVENT_SAMPLE_CLUSTER,
-	/** voice start */
-	SND_SEQ_EVENT_SAMPLE_START,
-	/** voice stop */
-	SND_SEQ_EVENT_SAMPLE_STOP,
-	/** playback frequency */
-	SND_SEQ_EVENT_SAMPLE_FREQ,
-	/** volume and balance */
-	SND_SEQ_EVENT_SAMPLE_VOLUME,
-	/** sample loop */
-	SND_SEQ_EVENT_SAMPLE_LOOP,
-	/** sample position */
-	SND_SEQ_EVENT_SAMPLE_POSITION,
-	/** private (hardware dependent) event */
-	SND_SEQ_EVENT_SAMPLE_PRIVATE1,
-
 	/** user-defined event; event data type = any (fixed size) */
 	SND_SEQ_EVENT_USR0 = 90,
 	/** user-defined event; event data type = any (fixed size) */
@@ -172,45 +153,6 @@ enum snd_seq_event_type {
 	SND_SEQ_EVENT_USR8,
 	/** user-defined event; event data type = any (fixed size) */
 	SND_SEQ_EVENT_USR9,
-
-	/** begin of instrument management */
-	SND_SEQ_EVENT_INSTR_BEGIN = 100,
-	/** end of instrument management */
-	SND_SEQ_EVENT_INSTR_END,
-	/** query instrument interface info */
-	SND_SEQ_EVENT_INSTR_INFO,
-	/** result of instrument interface info */
-	SND_SEQ_EVENT_INSTR_INFO_RESULT,
-	/** query instrument format info */
-	SND_SEQ_EVENT_INSTR_FINFO,
-	/** result of instrument format info */
-	SND_SEQ_EVENT_INSTR_FINFO_RESULT,
-	/** reset instrument instrument memory */
-	SND_SEQ_EVENT_INSTR_RESET,
-	/** get instrument interface status */
-	SND_SEQ_EVENT_INSTR_STATUS,
-	/** result of instrument interface status */
-	SND_SEQ_EVENT_INSTR_STATUS_RESULT,
-	/** put an instrument to port */
-	SND_SEQ_EVENT_INSTR_PUT,
-	/** get an instrument from port */
-	SND_SEQ_EVENT_INSTR_GET,
-	/** result of instrument query */
-	SND_SEQ_EVENT_INSTR_GET_RESULT,
-	/** free instrument(s) */
-	SND_SEQ_EVENT_INSTR_FREE,
-	/** get instrument list */
-	SND_SEQ_EVENT_INSTR_LIST,
-	/** result of instrument list */
-	SND_SEQ_EVENT_INSTR_LIST_RESULT,
-	/** set cluster parameters */
-	SND_SEQ_EVENT_INSTR_CLUSTER,
-	/** get cluster parameters */
-	SND_SEQ_EVENT_INSTR_CLUSTER_GET,
-	/** result of cluster parameters */
-	SND_SEQ_EVENT_INSTR_CLUSTER_RESULT,
-	/** instrument change */
-	SND_SEQ_EVENT_INSTR_CHANGE,
 
 	/** system exclusive data (variable length);  event data type = #snd_seq_ev_ext_t */
 	SND_SEQ_EVENT_SYSEX = 130,
@@ -317,79 +259,6 @@ typedef struct snd_seq_ev_ext {
 	void *ptr;			/**< pointer to data (note: can be 64-bit) */
 } snd_seq_ev_ext_t;
 
-/** Instrument cluster type */
-typedef unsigned int snd_seq_instr_cluster_t;
-
-/** Instrument type */
-typedef struct snd_seq_instr {
-	snd_seq_instr_cluster_t cluster;	/**< cluster id */
-	unsigned int std;	/**< instrument standard id; the upper byte means a private instrument (owner - client id) */
-	unsigned short bank;	/**< instrument bank id */
-	unsigned short prg;	/**< instrument program id */
-} snd_seq_instr_t;
-
-/** sample number */
-typedef struct snd_seq_ev_sample {
-	unsigned int std;	/**< sample standard id */
-	unsigned short bank;	/**< sample bank id */
-	unsigned short prg;	/**< sample program id */
-} snd_seq_ev_sample_t;
-
-/** sample cluster */
-typedef struct snd_seq_ev_cluster {
-	snd_seq_instr_cluster_t cluster;	/**< cluster id */
-} snd_seq_ev_cluster_t;
-
-/** sample position */
-typedef unsigned int snd_seq_position_t; /**< playback position (in samples) * 16 */
-
-/** sample stop mode */
-typedef enum snd_seq_stop_mode {
-	SND_SEQ_SAMPLE_STOP_IMMEDIATELY = 0,	/**< terminate playing immediately */
-	SND_SEQ_SAMPLE_STOP_VENVELOPE = 1,	/**< finish volume envelope */
-	SND_SEQ_SAMPLE_STOP_LOOP = 2		/**< terminate loop and finish wave */
-} snd_seq_stop_mode_t;
-
-/** sample frequency */
-typedef int snd_seq_frequency_t; /**< playback frequency in HZ * 16 */
-
-/** sample volume control; if any value is set to -1 == do not change */
-typedef struct snd_seq_ev_volume {
-	signed short volume;	/**< range: 0-16383 */
-	signed short lr;	/**< left-right balance; range: 0-16383 */
-	signed short fr;	/**< front-rear balance; range: 0-16383 */
-	signed short du;	/**< down-up balance; range: 0-16383 */
-} snd_seq_ev_volume_t;
-
-/** simple loop redefinition */
-typedef struct snd_seq_ev_loop {
-	unsigned int start;	/**< loop start (in samples) * 16 */
-	unsigned int end;	/**< loop end (in samples) * 16 */
-} snd_seq_ev_loop_t;
-
-/** Sample control events */
-typedef struct snd_seq_ev_sample_control {
-	unsigned char channel;		/**< channel */
-	unsigned char unused[3];	/**< reserved */
-	union {
-		snd_seq_ev_sample_t sample;	/**< sample number */
-		snd_seq_ev_cluster_t cluster;	/**< cluster number */
-		snd_seq_position_t position;	/**< position */
-		snd_seq_stop_mode_t stop_mode;	/**< stop mode */
-		snd_seq_frequency_t frequency;	/**< frequency */
-		snd_seq_ev_volume_t volume;	/**< volume */
-		snd_seq_ev_loop_t loop;		/**< loop control */
-		unsigned char raw8[8];		/**< raw 8-bit */
-	} param;		/**< control parameters */
-} snd_seq_ev_sample_control_t;
-
-
-
-/** INSTR_BEGIN event */
-typedef struct snd_seq_ev_instr_begin {
-	int timeout;		/**< zero = forever, otherwise timeout in ms */
-} snd_seq_ev_instr_begin_t;
-
 /** Result events */
 typedef struct snd_seq_result {
 	int event;		/**< processed event type */
@@ -440,8 +309,6 @@ typedef struct snd_seq_event {
 		snd_seq_addr_t addr;		/**< address */
 		snd_seq_connect_t connect;	/**< connect information */
 		snd_seq_result_t result;	/**< operation result code */
-		snd_seq_ev_instr_begin_t instr_begin; /**< instrument */
-		snd_seq_ev_sample_control_t sample; /**< sample control */
 	} data;				/**< event data... */
 } snd_seq_event_t;
 

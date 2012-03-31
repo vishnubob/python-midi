@@ -1,7 +1,7 @@
 /**
  * \file include/seq.h
  * \brief Application interface library for the ALSA driver
- * \author Jaroslav Kysela <perex@suse.cz>
+ * \author Jaroslav Kysela <perex@perex.cz>
  * \author Abramo Bagnara <abramo@alsa-project.org>
  * \author Takashi Iwai <tiwai@suse.de>
  * \date 1998-2001
@@ -46,15 +46,6 @@ extern "C" {
 /** Sequencer handle */
 typedef struct _snd_seq snd_seq_t;
 
-#ifndef DOC_HIDDEN
-#define SND_ALLOCA(type,ptr) \
-do {\
-	assert(ptr);\
-	*ptr = (type##_t *)alloca(type##_sizeof());\
-	memset(*ptr, 0, type##_sizeof());\
-} while (0)
-#endif
-
 /**
  * sequencer opening stream types
  */
@@ -81,8 +72,6 @@ typedef enum _snd_seq_type {
 
 /** known client numbers */
 #define SND_SEQ_CLIENT_SYSTEM		0	/**< system client */
-#define SND_SEQ_CLIENT_DUMMY		62	/**< dummy ports */
-#define SND_SEQ_CLIENT_OSS		63	/**< OSS sequencer emulator */
 
 /*
  */
@@ -108,7 +97,7 @@ typedef struct _snd_seq_system_info snd_seq_system_info_t;
 size_t snd_seq_system_info_sizeof(void);
 /** allocate a #snd_seq_system_info_t container on stack */
 #define snd_seq_system_info_alloca(ptr) \
-	SND_ALLOCA(snd_seq_system_info, ptr)
+	__snd_alloca(ptr, snd_seq_system_info)
 int snd_seq_system_info_malloc(snd_seq_system_info_t **ptr);
 void snd_seq_system_info_free(snd_seq_system_info_t *ptr);
 void snd_seq_system_info_copy(snd_seq_system_info_t *dst, const snd_seq_system_info_t *src);
@@ -144,7 +133,7 @@ typedef enum snd_seq_client_type {
 size_t snd_seq_client_info_sizeof(void);
 /** allocate a #snd_seq_client_info_t container on stack */
 #define snd_seq_client_info_alloca(ptr) \
-	SND_ALLOCA(snd_seq_client_info, ptr)
+	__snd_alloca(ptr, snd_seq_client_info)
 int snd_seq_client_info_malloc(snd_seq_client_info_t **ptr);
 void snd_seq_client_info_free(snd_seq_client_info_t *ptr);
 void snd_seq_client_info_copy(snd_seq_client_info_t *dst, const snd_seq_client_info_t *src);
@@ -164,6 +153,11 @@ void snd_seq_client_info_set_broadcast_filter(snd_seq_client_info_t *info, int v
 void snd_seq_client_info_set_error_bounce(snd_seq_client_info_t *info, int val);
 void snd_seq_client_info_set_event_filter(snd_seq_client_info_t *info, unsigned char *filter);
 
+void snd_seq_client_info_event_filter_clear(snd_seq_client_info_t *info);
+void snd_seq_client_info_event_filter_add(snd_seq_client_info_t *info, int event_type);
+void snd_seq_client_info_event_filter_del(snd_seq_client_info_t *info, int event_type);
+int snd_seq_client_info_event_filter_check(snd_seq_client_info_t *info, int event_type);
+
 int snd_seq_get_client_info(snd_seq_t *handle, snd_seq_client_info_t *info);
 int snd_seq_get_any_client_info(snd_seq_t *handle, int client, snd_seq_client_info_t *info);
 int snd_seq_set_client_info(snd_seq_t *handle, snd_seq_client_info_t *info);
@@ -178,7 +172,7 @@ typedef struct _snd_seq_client_pool snd_seq_client_pool_t;
 size_t snd_seq_client_pool_sizeof(void);
 /** allocate a #snd_seq_client_pool_t container on stack */
 #define snd_seq_client_pool_alloca(ptr) \
-	SND_ALLOCA(snd_seq_client_pool, ptr)
+	__snd_alloca(ptr, snd_seq_client_pool)
 int snd_seq_client_pool_malloc(snd_seq_client_pool_t **ptr);
 void snd_seq_client_pool_free(snd_seq_client_pool_t *ptr);
 void snd_seq_client_pool_copy(snd_seq_client_pool_t *dst, const snd_seq_client_pool_t *src);
@@ -227,23 +221,47 @@ typedef struct _snd_seq_port_info snd_seq_port_info_t;
 #define SND_SEQ_PORT_CAP_SUBS_WRITE	(1<<6)	/**< allow write subscription */
 #define SND_SEQ_PORT_CAP_NO_EXPORT	(1<<7)	/**< routing not allowed */
 
-/** port type */
-#define SND_SEQ_PORT_TYPE_SPECIFIC	(1<<0)	/**< hardware specific */
-#define SND_SEQ_PORT_TYPE_MIDI_GENERIC	(1<<1)	/**< generic MIDI device */
-#define SND_SEQ_PORT_TYPE_MIDI_GM	(1<<2)	/**< General MIDI compatible device */
-#define SND_SEQ_PORT_TYPE_MIDI_GS	(1<<3)	/**< GS compatible device */
-#define SND_SEQ_PORT_TYPE_MIDI_XG	(1<<4)	/**< XG compatible device */
-#define SND_SEQ_PORT_TYPE_MIDI_MT32	(1<<5)	/**< MT-32 compatible device */
-#define SND_SEQ_PORT_TYPE_SYNTH		(1<<10)	/**< Synth device */
-#define SND_SEQ_PORT_TYPE_DIRECT_SAMPLE (1<<11)	/**< Sampling device (support sample download) */
-#define SND_SEQ_PORT_TYPE_SAMPLE	(1<<12)	/**< Sampling device (sample can be downloaded at any time) */
-#define SND_SEQ_PORT_TYPE_APPLICATION	(1<<20)	/**< application (sequencer/editor) */
+/* port type */
+/** Messages sent from/to this port have device-specific semantics. */
+#define SND_SEQ_PORT_TYPE_SPECIFIC	(1<<0)
+/** This port understands MIDI messages. */
+#define SND_SEQ_PORT_TYPE_MIDI_GENERIC	(1<<1)
+/** This port is compatible with the General MIDI specification. */
+#define SND_SEQ_PORT_TYPE_MIDI_GM	(1<<2)
+/** This port is compatible with the Roland GS standard. */
+#define SND_SEQ_PORT_TYPE_MIDI_GS	(1<<3)
+/** This port is compatible with the Yamaha XG specification. */
+#define SND_SEQ_PORT_TYPE_MIDI_XG	(1<<4)
+/** This port is compatible with the Roland MT-32. */
+#define SND_SEQ_PORT_TYPE_MIDI_MT32	(1<<5)
+/** This port is compatible with the General MIDI 2 specification. */
+#define SND_SEQ_PORT_TYPE_MIDI_GM2	(1<<6)
+/** This port understands SND_SEQ_EVENT_SAMPLE_xxx messages
+    (these are not MIDI messages). */
+#define SND_SEQ_PORT_TYPE_SYNTH		(1<<10)
+/** Instruments can be downloaded to this port
+    (with SND_SEQ_EVENT_INSTR_xxx messages sent directly). */
+#define SND_SEQ_PORT_TYPE_DIRECT_SAMPLE (1<<11)
+/** Instruments can be downloaded to this port
+    (with SND_SEQ_EVENT_INSTR_xxx messages sent directly or through a queue). */
+#define SND_SEQ_PORT_TYPE_SAMPLE	(1<<12)
+/** This port is implemented in hardware. */
+#define SND_SEQ_PORT_TYPE_HARDWARE	(1<<16)
+/** This port is implemented in software. */
+#define SND_SEQ_PORT_TYPE_SOFTWARE	(1<<17)
+/** Messages sent to this port will generate sounds. */
+#define SND_SEQ_PORT_TYPE_SYNTHESIZER	(1<<18)
+/** This port may connect to other devices
+    (whose characteristics are not known). */
+#define SND_SEQ_PORT_TYPE_PORT		(1<<19)
+/** This port belongs to an application, such as a sequencer or editor. */
+#define SND_SEQ_PORT_TYPE_APPLICATION	(1<<20)
 
 
 size_t snd_seq_port_info_sizeof(void);
 /** allocate a #snd_seq_port_info_t container on stack */
 #define snd_seq_port_info_alloca(ptr) \
-	SND_ALLOCA(snd_seq_port_info, ptr)
+	__snd_alloca(ptr, snd_seq_port_info)
 int snd_seq_port_info_malloc(snd_seq_port_info_t **ptr);
 void snd_seq_port_info_free(snd_seq_port_info_t *ptr);
 void snd_seq_port_info_copy(snd_seq_port_info_t *dst, const snd_seq_port_info_t *src);
@@ -301,7 +319,7 @@ typedef struct _snd_seq_port_subscribe snd_seq_port_subscribe_t;
 size_t snd_seq_port_subscribe_sizeof(void);
 /** allocate a #snd_seq_port_subscribe_t container on stack */
 #define snd_seq_port_subscribe_alloca(ptr) \
-	SND_ALLOCA(snd_seq_port_subscribe, ptr)
+	__snd_alloca(ptr, snd_seq_port_subscribe)
 int snd_seq_port_subscribe_malloc(snd_seq_port_subscribe_t **ptr);
 void snd_seq_port_subscribe_free(snd_seq_port_subscribe_t *ptr);
 void snd_seq_port_subscribe_copy(snd_seq_port_subscribe_t *dst, const snd_seq_port_subscribe_t *src);
@@ -339,7 +357,7 @@ typedef enum {
 size_t snd_seq_query_subscribe_sizeof(void);
 /** allocate a #snd_seq_query_subscribe_t container on stack */
 #define snd_seq_query_subscribe_alloca(ptr) \
-	SND_ALLOCA(snd_seq_query_subscribe, ptr)
+	__snd_alloca(ptr, snd_seq_query_subscribe)
 int snd_seq_query_subscribe_malloc(snd_seq_query_subscribe_t **ptr);
 void snd_seq_query_subscribe_free(snd_seq_query_subscribe_t *ptr);
 void snd_seq_query_subscribe_copy(snd_seq_query_subscribe_t *dst, const snd_seq_query_subscribe_t *src);
@@ -389,7 +407,7 @@ typedef struct _snd_seq_queue_timer snd_seq_queue_timer_t;
 size_t snd_seq_queue_info_sizeof(void);
 /** allocate a #snd_seq_queue_info_t container on stack */
 #define snd_seq_queue_info_alloca(ptr) \
-	SND_ALLOCA(snd_seq_queue_info, ptr)
+	__snd_alloca(ptr, snd_seq_queue_info)
 int snd_seq_queue_info_malloc(snd_seq_queue_info_t **ptr);
 void snd_seq_queue_info_free(snd_seq_queue_info_t *ptr);
 void snd_seq_queue_info_copy(snd_seq_queue_info_t *dst, const snd_seq_queue_info_t *src);
@@ -421,7 +439,7 @@ int snd_seq_set_queue_usage(snd_seq_t *handle, int q, int used);
 size_t snd_seq_queue_status_sizeof(void);
 /** allocate a #snd_seq_queue_status_t container on stack */
 #define snd_seq_queue_status_alloca(ptr) \
-	SND_ALLOCA(snd_seq_queue_status, ptr)
+	__snd_alloca(ptr, snd_seq_queue_status)
 int snd_seq_queue_status_malloc(snd_seq_queue_status_t **ptr);
 void snd_seq_queue_status_free(snd_seq_queue_status_t *ptr);
 void snd_seq_queue_status_copy(snd_seq_queue_status_t *dst, const snd_seq_queue_status_t *src);
@@ -439,7 +457,7 @@ int snd_seq_get_queue_status(snd_seq_t *handle, int q, snd_seq_queue_status_t *s
 size_t snd_seq_queue_tempo_sizeof(void);
 /** allocate a #snd_seq_queue_tempo_t container on stack */
 #define snd_seq_queue_tempo_alloca(ptr) \
-	SND_ALLOCA(snd_seq_queue_tempo, ptr)
+	__snd_alloca(ptr, snd_seq_queue_tempo)
 int snd_seq_queue_tempo_malloc(snd_seq_queue_tempo_t **ptr);
 void snd_seq_queue_tempo_free(snd_seq_queue_tempo_t *ptr);
 void snd_seq_queue_tempo_copy(snd_seq_queue_tempo_t *dst, const snd_seq_queue_tempo_t *src);
@@ -470,7 +488,7 @@ typedef enum {
 size_t snd_seq_queue_timer_sizeof(void);
 /** allocate a #snd_seq_queue_timer_t container on stack */
 #define snd_seq_queue_timer_alloca(ptr) \
-	SND_ALLOCA(snd_seq_queue_timer, ptr)
+	__snd_alloca(ptr, snd_seq_queue_timer)
 int snd_seq_queue_timer_malloc(snd_seq_queue_timer_t **ptr);
 void snd_seq_queue_timer_free(snd_seq_queue_timer_t *ptr);
 void snd_seq_queue_timer_copy(snd_seq_queue_timer_t *dst, const snd_seq_queue_timer_t *src);
@@ -529,7 +547,7 @@ typedef struct _snd_seq_remove_events snd_seq_remove_events_t;
 size_t snd_seq_remove_events_sizeof(void);
 /** allocate a #snd_seq_remove_events_t container on stack */
 #define snd_seq_remove_events_alloca(ptr) \
-	SND_ALLOCA(snd_seq_remove_events, ptr)
+	__snd_alloca(ptr, snd_seq_remove_events)
 int snd_seq_remove_events_malloc(snd_seq_remove_events_t **ptr);
 void snd_seq_remove_events_free(snd_seq_remove_events_t *ptr);
 void snd_seq_remove_events_copy(snd_seq_remove_events_t *dst, const snd_seq_remove_events_t *src);
@@ -562,6 +580,7 @@ int snd_seq_remove_events(snd_seq_t *handle, snd_seq_remove_events_t *info);
  */
 
 void snd_seq_set_bit(int nr, void *array);
+void snd_seq_unset_bit(int nr, void *array);
 int snd_seq_change_bit(int nr, void *array);
 int snd_seq_get_bit(int nr, void *array);
 

@@ -1,7 +1,7 @@
 /**
  * \file include/error.h
  * \brief Application interface library for the ALSA driver
- * \author Jaroslav Kysela <perex@suse.cz>
+ * \author Jaroslav Kysela <perex@perex.cz>
  * \author Abramo Bagnara <abramo@alsa-project.org>
  * \author Takashi Iwai <tiwai@suse.de>
  * \date 1998-2001

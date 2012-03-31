@@ -92,7 +92,6 @@ class Event(AbstractEvent):
     is_event = classmethod(is_event)
 
 
-
 """
 MetaEvent is a special subclass of Event that is not meant to
 be used as a concrete class.  It defines a subset of Events known
@@ -129,7 +128,7 @@ class NoteEvent(Event):
         return self.data[1]
     def set_velocity(self, val):
         self.data[1] = val
-    velocity = property(set_velocity, get_velocity)
+    velocity = property(get_velocity, set_velocity)
 
 class NoteOnEvent(NoteEvent):
     statusmsg = 0x90
@@ -154,13 +153,13 @@ class ControlChangeEvent(Event):
         self.data[0] = val
     def get_control(self):
         return self.data[0]
-    control = property(set_control, get_control)
+    control = property(get_control, set_control)
 
     def set_value(self, val):
         self.data[1] = val
     def get_value(self):
         return self.data[1]
-    value = property(set_value, get_value)
+    value = property(get_value, set_value)
     
 class ProgramChangeEvent(Event):
     __slots__ = ['value']
@@ -172,7 +171,7 @@ class ProgramChangeEvent(Event):
         self.data[1] = val
     def get_value(self):
         return self.data[1]
-    value = property(set_value, get_value)
+    value = property(get_value, set_value)
 
 class ChannelAfterTouchEvent(Event):
     __slots__ = ['value']
@@ -184,7 +183,7 @@ class ChannelAfterTouchEvent(Event):
         self.data[1] = val
     def get_value(self):
         return self.data[1]
-    value = property(set_value, get_value)
+    value = property(get_value, set_value)
 
 class PitchWheelEvent(Event):
     __slots__ = ['pitch']

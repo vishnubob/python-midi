@@ -25,6 +25,7 @@ if not port.isdigit:
 seq = sequencer.SequencerWrite(sequencer_resolution=120)
 seq.subscribe_port(client, port)
 
+pattern.make_ticks_abs()
 for track in pattern:
     for event in track:
         seq.event_write(event, False, False, True)

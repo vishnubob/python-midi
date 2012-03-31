@@ -121,8 +121,8 @@ class Sequencer(object):
 
     def _new_address(self, client, port):
         addr = S.snd_seq_addr_t()
-        addr.client = client
-        addr.port = port
+        addr.client = int(client)
+        addr.port = int(port)
         return addr
     
     def _init_queue(self):

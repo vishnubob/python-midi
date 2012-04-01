@@ -80,9 +80,10 @@ class Event(AbstractEvent):
     def __cmp__(self, other):
         if self.tick < other.tick: return -1
         elif self.tick > other.tick: return 1
-        if self.channel < other.channel: return -1
-        elif self.channel > other.channel: return 1
-        return cmp(self.data, other.data)
+        return 0
+        #if self.channel < other.channel: return -1
+        #elif self.channel > other.channel: return 1
+        #return cmp(self.data, other.data)
 
     def __repr__(self):
         return self.__baserepr__(['channel'])

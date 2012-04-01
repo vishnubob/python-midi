@@ -23,14 +23,22 @@ if not client.isdigit:
 if not port.isdigit:
     port = hardware.get_port(port)    
 
-seq = sequencer.SequencerWrite(sequencer_resolution=120)
+seq = sequencer.SequencerWrite(sequencer_resolution=pattern.resolution)
 seq.subscribe_port(client, port)
 
 pattern.make_ticks_abs()
-seq.start_sequencer()
+events = []
 for track in pattern:
     for event in track:
-        seq.event_write(event, False, False, True)
+        events.append(event)
+events.sort()
+seq.start_sequencer()
+for event in events:
+    buf = seq.event_write(event, False, False, True)
+    if buf == None:
+        continue
+    if buf < 1000:
+        time.sleep(.5)
 time.sleep(30)
 
 print 'The end?'

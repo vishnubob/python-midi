@@ -1,4 +1,3 @@
-
 class TempoMap(list):
     def __init__(self, stream):
         self.stream = stream

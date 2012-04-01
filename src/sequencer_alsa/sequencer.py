@@ -70,7 +70,8 @@ class Sequencer(object):
 
     def _error(self, errcode):
         strerr = S.snd_strerror(errcode)
-        raise "ALSAError[%d]: %s" % (errcode, strerr)
+        msg = "ALSAError[%d]: %s" % (errcode, strerr)
+        raise RuntimeError, msg
 
     def _init_handle(self):
         ret = S.open_client(self.alsa_sequencer_name,
@@ -234,13 +235,13 @@ class Sequencer(object):
 
         ## Tempo Change
         if isinstance(event, midi.SetTempoEvent):
-            adjtempo = int(60.0 * 1000000.0 / event.tempo)
+            adjtempo = int(60.0 * 1000000.0 / event.bpm)
             seqev.type = S.SND_SEQ_EVENT_TEMPO
             seqev.dest.client = S.SND_SEQ_CLIENT_SYSTEM
             seqev.dest.port = S.SND_SEQ_PORT_SYSTEM_TIMER
             seqev.data.queue.queue = self.queue
             seqev.data.queue.param.value = adjtempo
-        ## Tempo Change
+        ## Note Event
         elif isinstance(event, midi.NoteEvent):
             if isinstance(event, midi.NoteOnEvent):
                 seqev.type = S.SND_SEQ_EVENT_NOTEON
@@ -264,7 +265,7 @@ class Sequencer(object):
         elif isinstance(event, midi.PitchWheelEvent):
             seqev.type = S.SND_SEQ_EVENT_PITCHBEND
             seqev.data.control.channel = event.channel
-            seqev.data.control.value = event.value
+            seqev.data.control.value = event.pitch
         ## Unknown
         else:
             print "Warning :: Unknown event type: %s" % event

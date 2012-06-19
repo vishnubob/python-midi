@@ -203,7 +203,7 @@ class Sequencer(object):
     ## EVENT HANDLERS
     ##
     def event_write(self, event, direct=False, relative=False, tick=False):
-        print event.__class__, event
+        #print event.__class__, event
         ## Event Filter
         if isinstance(event, midi.EndOfTrackEvent):
             return

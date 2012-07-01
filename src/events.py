@@ -75,7 +75,13 @@ class Event(AbstractEvent):
         if 'channel' not in kw:
             kw = kw.copy()
             kw['channel'] = 0
+            self.__kw = kw
         super(Event, self).__init__(**kw)
+
+    def copy(self, **kw):
+        _kw = {'channel': self.channel, 'tick': self.tick, 'data': self.data}
+        _kw.update(kw)
+        return self.__class__(**_kw) 
 
     def __cmp__(self, other):
         if self.tick < other.tick: return -1

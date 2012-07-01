@@ -79,9 +79,9 @@ class Event(AbstractEvent):
         super(Event, self).__init__(**kw)
 
     def copy(self, **kw):
-        _kw = self.__dict__
+        _kw = {'channel': self.channel, 'tick': self.tick, 'data': self.data}
         _kw.update(kw)
-        return self.__class__(**_kw)
+        return self.__class__(**_kw) 
 
     def __cmp__(self, other):
         if self.tick < other.tick: return -1

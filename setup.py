@@ -12,7 +12,7 @@ __base__ = {
     'py_modules':['midi.containers', 'midi.__init__', 'midi.events', 'midi.util', 'midi.fileio', 'midi.constants'],
     'ext_modules':[],
     'ext_package':'',
-    'scripts':['scripts/mididump', 'scripts/mididumphw'],
+    'scripts':['scripts/mididump', 'scripts/mididumphw', 'scripts/midiplay'],
 }
 
 def setup_alsa(ns):

@@ -290,7 +290,7 @@ class SetTempoEvent(MetaEvent):
 
     def get_mpqn(self):
         assert(len(self.data) == 3)
-        vals = [x << (16 - (8 * self.data.index(x))) for x in self.data]
+        vals = [self.data[x] << (16 - (8 * x)) for x in xrange(3)]
         return sum(vals)
     def set_mpqn(self, val):
         self.data = [(val >> (16 - (8 * x)) & 0xFF) for x in range(3)]

@@ -1,4 +1,4 @@
-
+import pdb
 class EventRegistry(object):
     Events = {}
     MetaEvents = {}
@@ -75,7 +75,7 @@ class Event(AbstractEvent):
         if 'channel' not in kw:
             kw = kw.copy()
             kw['channel'] = 0
-            self.__kw = kw
+            #self.__kw = kw
         super(Event, self).__init__(**kw)
 
     def copy(self, **kw):

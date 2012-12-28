@@ -43,6 +43,10 @@ me if you would like to help.
 
 =Example Usage=
 
+'''WARNING! These examples are [https://github.com/vishnubob/python-midi/issues/3 out of date].'''
+
+For now, please see the examples in the <tt>scripts/</tt> directory.
+
 ==Building a track from scratch==
 
 <pre>

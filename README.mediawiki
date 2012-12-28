@@ -45,6 +45,7 @@ me if you would like to help.
 
 ==Building a track from scratch==
 
+<pre>
 Python 2.4.3 (#2, Apr 27 2006, 14:43:58)
 
 [GCC 4.0.3 (Ubuntu 4.0.3-1ubuntu5)] on linux2
@@ -58,6 +59,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> t.textdump()
 End of Track @0 0ms C0 T0
 Set Tempo @0 0ms C0 T0 [ mpqn: 300000 tempo: 200 ]
+</pre>
 
 new_stream() builds a midi.StreamEvent object, and it creates a tempo event in
 that stream at tick 0, hence the @0.  C0 means channel 0, which can go as high
@@ -89,18 +91,22 @@ Under the hood, MIDI represents Tempo in microseconds.  In other words, you
 convert Tempo to Microseconds per Beat.  If the Tempo was 120 BPM, the python
 code to convert to microseconds looks like this:
 
+<pre>
 >>> 60 * 1000000 / 120
 500000
+</pre>
 
 This says the Tempo is 500,000 microseconds per beat.  This, in combination
 with the Resolution, will allow you to convert ticks to time.  If there are
 500,000 microseconds per beat, and if the Resolution is 1,000 than one tick is
 how much time?
 
+<pre>
 >>> 500000 / 1000
 500
 >>> 500 / 1000000.0
 0.00050000000000000001
+</pre>
 
 In other words, one tick represents .0005 seconds of time or half a
 millisecond.  Increase the Resolution and this number gets smaller, the inverse
@@ -123,6 +129,7 @@ A Note On Event specifies a few things:
 
 Here is how you would build this:
 
+<pre>
 >>> on = midi.NoteOnEvent()
 >>> on.channel = 2
 >>> on.pitch = midi.G_3
@@ -130,25 +137,30 @@ Here is how you would build this:
 >>> on.tick = 200
 >>> print on
 Note On @200 0ms C2 T0 [ G-3(43) 100 ]
+</pre>
 
 The tick time is set, but the wall clock time in milliseconds is not.  That's
 because we need a tempo first, and for that, we need to add the event to a
 track.
 
+<pre>
 >>> t.add_event(on)
 >>> t.textdump()
 End of Track @201 502ms C0 T0
 Set Tempo @0 0ms C0 T0 [ mpqn: 300000 tempo: 200 ]
 Note On @200 500ms C2 T0 [ G-3(43) 100 ]
+</pre>
 
 With the context of a tempo, the wall clock time can be calculated.  The
 tracking code also maintains a singleton EndOfTrackEvent.  You can always
 get at this event using:
 
+<pre>
 >>> t.endoftrack
 <midi.midi.EndOfTrackEvent object at 0xb7d9220c>
 >>> print t.endoftrack
 End of Track @201 502ms C0 T0
+</pre>
 
 This allows you to easily predict how long a song will take to completely
 playback, event wise (ignoring issues of sustain, for example).
@@ -168,17 +180,21 @@ middle C.
 It's easy to save your work, using the helper function provided by the midi
 module.
 
+<pre>
 >>> midi.write_midifile(t, "first.mid")
+</pre>
 
 ==Reading our Track back from Disk==
 
 It's just as easy to load your MIDI file from disk.
 
+<pre>
 >>> z = midi.read_midifile("first.mid")
 >>> z.textdump()
 End of Track @202 505ms C0 T0
 Set Tempo @0 0ms C0 T0 [ mpqn: 300000 tempo: 200 ]
 Note On @200 500ms C2 T0 [ G-3(43) 100 ]
+</pre>
 
 ==Using the ALSA Sequencer==
 
@@ -187,6 +203,7 @@ change over time to accommodate future sequencer platforms.  I tried to make it
 as feature complete as possible, and it does some power stuff.  For example,
 you can enumerate your MIDI hardware using the "HardwareSequencer"
 
+<pre>
 >>> import midi.sequencer as sequencer
 >>> s = sequencer.SequencerHardware()
 >>> print s
@@ -205,26 +222,32 @@ you can enumerate your MIDI hardware using the "HardwareSequencer"
 ]   port(0) [w] "Receiver"
 ] client(62) "Midi Through"
 ]   port(0) [r, w, sender, receiver] "Midi Through Port-0"
+</pre>
 
 This allows you to look up client numbers and ports using it's lookup methods:
 
+<pre>
 >>> s["EMU10K1 MPU-401 (UART)"].client
 64
 >>> s["EMU10K1 MPU-401 (UART)"]["EMU10K1 MPU-401 (UART)"].port
 0
+</pre>
 
 Using these numbers, you can open a SequencerWriter()
 
+<pre>
 >>> client_name = 'EMU10K1 MPU-401 (UART)'
 >>> port_name = 'EMU10K1 MPU-401 (UART)'
 >>> hardware = sequencer.SequencerHardware()
 >>> client, port = hardware.get_client_and_port(client_name, port_name)
 >>> s = sequencer.SequencerWrite(sequencer_resolution=120)
 >>> s.subscribe_port(client, port)
+</pre>
 
 And now you can start writing events, using iterevents() from the track and
 event_write() from the sequencer:
 
+<pre>
 def play(stream, client, port):
     ppq = self.stream.resolution
     seq = sequencer.SequencerWrite(sequencer_resolution=ppq)
@@ -238,6 +261,7 @@ def play(stream, client, port):
     songlen = eot.msdelay / 1000.0
     remainder = (start + songlen) - now
     time.sleep(remainder + .5)
+</pre>
 
 Reading events is not much different, except you would use seq.event_read().
 There is also a polling interface, and the option to set all of this to non

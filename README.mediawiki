@@ -121,11 +121,11 @@ http://en.wikipedia.org/wiki/Time_signature
 
 A Note On Event specifies a few things:
 
-- pitch: a value between 0 and 127
-- velocity: a value representing the force you hit the key 
-            (on a piano, for example), between 0 and 127
-- tick: when the event occurred
-- channel: MIDI supports up to 16 channels on one bus, value between 0 and 15
+* pitch: a value between 0 and 127
+* velocity: a value representing the force you hit the key
+: (on a piano, for example), between 0 and 127
+* tick: when the event occurred
+* channel: MIDI supports up to 16 channels on one bus, value between 0 and 15
 
 Here is how you would build this:
 

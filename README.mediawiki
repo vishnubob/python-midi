@@ -274,6 +274,14 @@ write your queue at the same time.  This is good for maintaining a metronome,
 for example, that is tick for tick the same as the input you would be
 receiving.
 
+=Website, support, bug tracking, development etc.=
+
+You can find the latest code on the homepage:
+https://github.com/vishnubob/python-midi/
+
+You can also check for known issues and submit new ones to the
+tracker: https://github.com/vishnubob/python-midi/issues/
+
 =Thanks=
 
 I originally wrote this to drive the electro-mechanical instruments of Ensemble

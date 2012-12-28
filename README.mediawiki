@@ -5,7 +5,7 @@ an easy means to manipulate MIDI data.  There are probably about ten different
 python packages out there that accomplish some part of this goal, but there is
 nothing that is totally comprehensive.
 
-This toolkit aims to furfill this goal.  In particular, it strives to provide a
+This toolkit aims to fulfil this goal.  In particular, it strives to provide a
 high level framework that is independant of hardware.  It tries to offer a
 reasonable object granularity to make MIDI streams a painless thing to
 manipulate, sequence, record, and playback.  It's important to have a good

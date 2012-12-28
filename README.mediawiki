@@ -24,6 +24,14 @@ feature set to offer.
 * A tempo map that actively keeps track of tempo changes within a track.
 * A reader and writer, so you can read and write your MIDI tracks to disk.
 
+==Installation==
+
+Follow the [http://docs.python.org/2/install/index.html normal procedure for Python module installation]:
+
+<pre>
+python setup.py install
+</pre>
+
 ==Sequencer==
 
 If you use this toolkit under Linux, you can take advantage of ALSA's

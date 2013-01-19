@@ -1,4 +1,4 @@
-
+import pdb
 class EventRegistry(object):
     Events = {}
     MetaEvents = {}
@@ -75,7 +75,7 @@ class Event(AbstractEvent):
         if 'channel' not in kw:
             kw = kw.copy()
             kw['channel'] = 0
-            self.__kw = kw
+            #self.__kw = kw
         super(Event, self).__init__(**kw)
 
     def copy(self, **kw):
@@ -290,7 +290,7 @@ class SetTempoEvent(MetaEvent):
 
     def get_mpqn(self):
         assert(len(self.data) == 3)
-        vals = [x << (16 - (8 * self.data.index(x))) for x in self.data]
+        vals = [self.data[x] << (16 - (8 * x)) for x in xrange(3)]
         return sum(vals)
     def set_mpqn(self, val):
         self.data = [(val >> (16 - (8 * x)) & 0xFF) for x in range(3)]

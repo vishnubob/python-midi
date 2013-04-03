@@ -299,6 +299,4 @@ more information about Ensemble Robot, please visit:
 
 http://www.ensemblerobot.org/
 
--giles hall <ghall [at] csh [dot] rit [dot] edu> 10/07/2006
-
-
+-Giles Hall <giles@polymerase.org>

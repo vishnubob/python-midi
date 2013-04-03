@@ -20,7 +20,7 @@ class TestMIDI(unittest.TestCase):
             self.assertEqual(len(pattern1[track_idx]), len(pattern2[track_idx]))
             for event_idx in range(len(pattern1[track_idx])):
                 event1 = pattern1[track_idx][event_idx]
-                event2 = pattern1[track_idx][event_idx]
+                event2 = pattern2[track_idx][event_idx]
                 self.assertEqual(event1.tick, event2.tick)
                 self.assertEqual(event1.data, event2.data)
 

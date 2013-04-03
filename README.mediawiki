@@ -5,7 +5,7 @@ an easy means to manipulate MIDI data.  There are probably about ten different
 python packages out there that accomplish some part of this goal, but there is
 nothing that is totally comprehensive.
 
-This toolkit aims to furfill this goal.  In particular, it strives to provide a
+This toolkit aims to fulfil this goal.  In particular, it strives to provide a
 high level framework that is independant of hardware.  It tries to offer a
 reasonable object granularity to make MIDI streams a painless thing to
 manipulate, sequence, record, and playback.  It's important to have a good
@@ -17,14 +17,22 @@ are someone like me, who has spent a long time looking for a Python MIDI
 framework, than this might be a good fit.  It's not perfect, but it has a large
 feature set to offer.
 
-=Features=
+==Features==
 
 * High level class types that represent individual MIDI events.
 * A multitrack aware container, that allows you to manage your MIDI events.
 * A tempo map that actively keeps track of tempo changes within a track.
 * A reader and writer, so you can read and write your MIDI tracks to disk.
 
-=Sequencer=
+==Installation==
+
+Follow the [http://docs.python.org/2/install/index.html normal procedure for Python module installation]:
+
+<pre>
+python setup.py install
+</pre>
+
+==Sequencer==
 
 If you use this toolkit under Linux, you can take advantage of ALSA's
 sequencer.  There is a SWIG wrapper and a high level sequencer interface that
@@ -41,10 +49,15 @@ I am extremely interested in supporting OS-X and Win32 sequencers as well, but
 I need platform mavens who can help me.  Are you that person?  Please contact
 me if you would like to help.
 
-=Example Usage=
+==Example Usage==
 
-==Building a track from scratch==
+'''WARNING! These examples are [https://github.com/vishnubob/python-midi/issues/3 out of date].'''
 
+For now, please see the examples in the <tt>scripts/</tt> directory.
+
+===Building a track from scratch===
+
+<pre>
 Python 2.4.3 (#2, Apr 27 2006, 14:43:58)
 
 [GCC 4.0.3 (Ubuntu 4.0.3-1ubuntu5)] on linux2
@@ -58,6 +71,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> t.textdump()
 End of Track @0 0ms C0 T0
 Set Tempo @0 0ms C0 T0 [ mpqn: 300000 tempo: 200 ]
+</pre>
 
 new_stream() builds a midi.StreamEvent object, and it creates a tempo event in
 that stream at tick 0, hence the @0.  C0 means channel 0, which can go as high
@@ -65,7 +79,7 @@ as 15.  T0 means track 0, which can go as high as 256 (i think).  0ms and @0
 means the same thing.  @0 is the tick time, and 0ms means it occurs at
 0milliseconds after playback starts, what I refer to as wall clock.  
 
-===Side Note: What is a MIDI Tick?===
+====Side Note: What is a MIDI Tick?====
 
 The problem with ticks is that they don't give you any information about when
 they occur without knowing two other pieces of information, the resolution, and
@@ -89,18 +103,22 @@ Under the hood, MIDI represents Tempo in microseconds.  In other words, you
 convert Tempo to Microseconds per Beat.  If the Tempo was 120 BPM, the python
 code to convert to microseconds looks like this:
 
+<pre>
 >>> 60 * 1000000 / 120
 500000
+</pre>
 
 This says the Tempo is 500,000 microseconds per beat.  This, in combination
 with the Resolution, will allow you to convert ticks to time.  If there are
 500,000 microseconds per beat, and if the Resolution is 1,000 than one tick is
 how much time?
 
+<pre>
 >>> 500000 / 1000
 500
 >>> 500 / 1000000.0
 0.00050000000000000001
+</pre>
 
 In other words, one tick represents .0005 seconds of time or half a
 millisecond.  Increase the Resolution and this number gets smaller, the inverse
@@ -111,18 +129,19 @@ here is a quick refresher on Time Signatures:
 
 http://en.wikipedia.org/wiki/Time_signature
 
-==Creating Note On / Note Off Events==
+===Creating Note On / Note Off Events===
 
 A Note On Event specifies a few things:
 
-- pitch: a value between 0 and 127
-- velocity: a value representing the force you hit the key 
-            (on a piano, for example), between 0 and 127
-- tick: when the event occurred
-- channel: MIDI supports up to 16 channels on one bus, value between 0 and 15
+* pitch: a value between 0 and 127
+* velocity: a value representing the force you hit the key
+: (on a piano, for example), between 0 and 127
+* tick: when the event occurred
+* channel: MIDI supports up to 16 channels on one bus, value between 0 and 15
 
 Here is how you would build this:
 
+<pre>
 >>> on = midi.NoteOnEvent()
 >>> on.channel = 2
 >>> on.pitch = midi.G_3
@@ -130,25 +149,30 @@ Here is how you would build this:
 >>> on.tick = 200
 >>> print on
 Note On @200 0ms C2 T0 [ G-3(43) 100 ]
+</pre>
 
 The tick time is set, but the wall clock time in milliseconds is not.  That's
 because we need a tempo first, and for that, we need to add the event to a
 track.
 
+<pre>
 >>> t.add_event(on)
 >>> t.textdump()
 End of Track @201 502ms C0 T0
 Set Tempo @0 0ms C0 T0 [ mpqn: 300000 tempo: 200 ]
 Note On @200 500ms C2 T0 [ G-3(43) 100 ]
+</pre>
 
 With the context of a tempo, the wall clock time can be calculated.  The
 tracking code also maintains a singleton EndOfTrackEvent.  You can always
 get at this event using:
 
+<pre>
 >>> t.endoftrack
 <midi.midi.EndOfTrackEvent object at 0xb7d9220c>
 >>> print t.endoftrack
 End of Track @201 502ms C0 T0
+</pre>
 
 This allows you to easily predict how long a song will take to completely
 playback, event wise (ignoring issues of sustain, for example).
@@ -163,30 +187,35 @@ agreement on how to enumerate the octaves because the MIDI specification
 doesn't say anything about octave number.  It only specifies the value for
 middle C.
 
-==Writing our Track to Disk==
+===Writing our Track to Disk===
 
 It's easy to save your work, using the helper function provided by the midi
 module.
 
+<pre>
 >>> midi.write_midifile(t, "first.mid")
+</pre>
 
-==Reading our Track back from Disk==
+===Reading our Track back from Disk===
 
 It's just as easy to load your MIDI file from disk.
 
+<pre>
 >>> z = midi.read_midifile("first.mid")
 >>> z.textdump()
 End of Track @202 505ms C0 T0
 Set Tempo @0 0ms C0 T0 [ mpqn: 300000 tempo: 200 ]
 Note On @200 500ms C2 T0 [ G-3(43) 100 ]
+</pre>
 
-==Using the ALSA Sequencer==
+===Using the ALSA Sequencer===
 
 The ALSA sequencer module is a relatively new addition, and works well, but may
 change over time to accommodate future sequencer platforms.  I tried to make it
 as feature complete as possible, and it does some power stuff.  For example,
 you can enumerate your MIDI hardware using the "HardwareSequencer"
 
+<pre>
 >>> import midi.sequencer as sequencer
 >>> s = sequencer.SequencerHardware()
 >>> print s
@@ -205,26 +234,32 @@ you can enumerate your MIDI hardware using the "HardwareSequencer"
 ]   port(0) [w] "Receiver"
 ] client(62) "Midi Through"
 ]   port(0) [r, w, sender, receiver] "Midi Through Port-0"
+</pre>
 
 This allows you to look up client numbers and ports using it's lookup methods:
 
+<pre>
 >>> s["EMU10K1 MPU-401 (UART)"].client
 64
 >>> s["EMU10K1 MPU-401 (UART)"]["EMU10K1 MPU-401 (UART)"].port
 0
+</pre>
 
 Using these numbers, you can open a SequencerWriter()
 
+<pre>
 >>> client_name = 'EMU10K1 MPU-401 (UART)'
 >>> port_name = 'EMU10K1 MPU-401 (UART)'
 >>> hardware = sequencer.SequencerHardware()
 >>> client, port = hardware.get_client_and_port(client_name, port_name)
 >>> s = sequencer.SequencerWrite(sequencer_resolution=120)
 >>> s.subscribe_port(client, port)
+</pre>
 
 And now you can start writing events, using iterevents() from the track and
 event_write() from the sequencer:
 
+<pre>
 def play(stream, client, port):
     ppq = self.stream.resolution
     seq = sequencer.SequencerWrite(sequencer_resolution=ppq)
@@ -238,6 +273,7 @@ def play(stream, client, port):
     songlen = eot.msdelay / 1000.0
     remainder = (start + songlen) - now
     time.sleep(remainder + .5)
+</pre>
 
 Reading events is not much different, except you would use seq.event_read().
 There is also a polling interface, and the option to set all of this to non
@@ -246,7 +282,15 @@ write your queue at the same time.  This is good for maintaining a metronome,
 for example, that is tick for tick the same as the input you would be
 receiving.
 
-=Thanks=
+==Website, support, bug tracking, development etc.==
+
+You can find the latest code on the homepage:
+https://github.com/vishnubob/python-midi/
+
+You can also check for known issues and submit new ones to the
+tracker: https://github.com/vishnubob/python-midi/issues/
+
+==Thanks==
 
 I originally wrote this to drive the electro-mechanical instruments of Ensemble
 Robot, which is a boston based group of artists, programmers, and engineers.

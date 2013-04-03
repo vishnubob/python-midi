@@ -298,5 +298,3 @@ This API, however, has applications beyond controlling this equipment.  For
 more information about Ensemble Robot, please visit:
 
 http://www.ensemblerobot.org/
-
--Giles Hall <giles@polymerase.org>

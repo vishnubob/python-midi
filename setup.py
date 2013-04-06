@@ -41,5 +41,7 @@ def configure_platform():
         print "No sequencer available for '%s' platform." % platform
     return ns
 
-setup(**configure_platform())
+if __name__ == "__main__":
+    setup(**configure_platform())
+
 

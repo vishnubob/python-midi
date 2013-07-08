@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-
+"""
+Attach to a MIDI device and send the contents of a MIDI file to it.
+"""
 import sys
 import time
 import midi

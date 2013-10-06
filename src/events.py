@@ -240,7 +240,7 @@ class InstrumentNameEvent(MetaEvent):
     metacommand = 0x04
     length = 'varlen'
 
-class LryricsEvent(MetaEvent):
+class LyricsEvent(MetaEvent):
     name = 'Lyrics'
     metacommand = 0x05
     length = 'varlen'

@@ -1,4 +1,6 @@
 import pdb
+import math
+
 class EventRegistry(object):
     Events = {}
     MetaEvents = {}
@@ -315,7 +317,7 @@ class TimeSignatureEvent(MetaEvent):
     def get_denominator(self):
         return 2 ** self.data[1]
     def set_denominator(self, val):
-        self.data[1] = int(math.sqrt(val))
+        self.data[1] = int(math.log(val, 2))
     denominator = property(get_denominator, set_denominator)
 
     def get_metronome(self):

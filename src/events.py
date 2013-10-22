@@ -204,8 +204,8 @@ class PitchWheelEvent(Event):
         return ((self.data[1] << 7) | self.data[0]) - 0x2000
     def set_pitch(self, pitch):
         value = pitch + 0x2000
-        self.data[0] = value & 0xFF
-        self.data[1] = (value >> 7) & 0xFF
+        self.data[0] = value & 0x7F
+        self.data[1] = (value >> 7) & 0x7F
     pitch = property(get_pitch, set_pitch)
 
 class SysexEvent(Event):

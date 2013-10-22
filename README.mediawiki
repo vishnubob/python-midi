@@ -49,6 +49,44 @@ I am extremely interested in supporting OS-X and Win32 sequencers as well, but
 I need platform mavens who can help me.  Are you that person?  Please contact
 me if you would like to help.
 
+==Example Scripts==
+
+To examine the contents of a MIDI file run
+
+<pre>
+$ scripts/mididump mary.mid
+</pre>
+
+This will print a histogram of the notes used in each track of the
+file and a representation of the commands executed. 
+
+To examine the hardware and software MIDI devices attached to your
+system, run
+
+<pre>
+$ ./mididumphw
+] client(20) "OP-1 Midi Device"
+]   port(0) [r, w, sender, receiver] "OP-1 Midi Device MIDI 1"
+] client(129) "__sequencer__"
+] client(14) "Midi Through"
+]   port(0) [r, w, sender, receiver] "Midi Through Port-0"
+] client(0) "System"
+]   port(1) [r, sender] "Announce"
+]   port(0) [r, w, sender] "Timer"
+] client(128) "FLUID Synth (6438)"
+]   port(0) [w, receiver] "Synth input port (6438:0)"
+</pre>
+
+In the case shown, [http://qsynth.sourceforge.net/qsynth-index.html qsynth]
+is running (client 128), and a hardware synthesizer is attached via
+USB (client 20).
+
+To play the example MIDI file, run
+
+<pre>
+$ scripts/midiplay 128 0 mary.mid
+</pre>
+
 ==Example Usage==
 
 '''WARNING! These examples are [https://github.com/vishnubob/python-midi/issues/3 out of date].'''

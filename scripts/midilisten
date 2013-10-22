@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-
+"""
+Attach to a MIDI device and print events to standard output.
+"""
 import sys
 import time
 import midi

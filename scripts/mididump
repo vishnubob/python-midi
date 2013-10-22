@@ -1,5 +1,7 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python
+"""
+Print a description of a MIDI file.
+"""
 import midi
 import sys
 import pickle

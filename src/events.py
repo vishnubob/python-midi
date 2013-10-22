@@ -1,8 +1,10 @@
 import pdb
+import math
+
 class EventRegistry(object):
     Events = {}
     MetaEvents = {}
-    
+
     def register_event(cls, event, bases):
         if MetaEvent in bases:
             assert event.metacommand not in cls.MetaEvents, \
@@ -66,7 +68,7 @@ MetaEvent is a special subclass of Event that is not meant to
 be used as a concrete class.  It defines a subset of Events known
 as the Meta  events.
 """
-    
+
 class Event(AbstractEvent):
     __slots__ = ['channel']
     name = 'Event'
@@ -81,7 +83,7 @@ class Event(AbstractEvent):
     def copy(self, **kw):
         _kw = {'channel': self.channel, 'tick': self.tick, 'data': self.data}
         _kw.update(kw)
-        return self.__class__(**_kw) 
+        return self.__class__(**_kw)
 
     def __cmp__(self, other):
         if self.tick < other.tick: return -1
@@ -104,7 +106,7 @@ MetaEvent is a special subclass of Event that is not meant to
 be used as a concrete class.  It defines a subset of Events known
 as the Meta  events.
 """
-    
+
 class MetaEvent(AbstractEvent):
     statusmsg = 0xFF
     metacommand = 0x0
@@ -167,7 +169,7 @@ class ControlChangeEvent(Event):
     def get_value(self):
         return self.data[1]
     value = property(get_value, set_value)
-    
+
 class ProgramChangeEvent(Event):
     __slots__ = ['value']
     statusmsg = 0xC0
@@ -240,7 +242,7 @@ class InstrumentNameEvent(MetaEvent):
     metacommand = 0x04
     length = 'varlen'
 
-class LryricsEvent(MetaEvent):
+class LyricsEvent(MetaEvent):
     name = 'Lyrics'
     metacommand = 0x05
     length = 'varlen'
@@ -315,7 +317,7 @@ class TimeSignatureEvent(MetaEvent):
     def get_denominator(self):
         return 2 ** self.data[1]
     def set_denominator(self, val):
-        self.data[1] = int(math.sqrt(val))
+        self.data[1] = int(math.log(val, 2))
     denominator = property(get_denominator, set_denominator)
 
     def get_metronome(self):
@@ -331,8 +333,23 @@ class TimeSignatureEvent(MetaEvent):
     thirtyseconds = property(get_thirtyseconds, set_thirtyseconds)
 
 class KeySignatureEvent(MetaEvent):
+    __slots__ = ['alternatives', 'minor']
     name = 'Key Signature'
     metacommand = 0x59
+    length = 2
+
+    def get_alternatives(self):
+        d = self.data[0]
+        return d - 256 if d > 127 else d
+    def set_alternatives(self, val):
+        self.data[0] = 256 + val if val < 0 else val
+    alternatives = property(get_alternatives, set_alternatives)
+
+    def get_minor(self):
+        return self.data[1]
+    def set_minor(self, val):
+        self.data[1] = val
+    minor = property(get_minor, set_minor)
 
 class SequencerSpecificEvent(MetaEvent):
     name = 'Sequencer Specific'

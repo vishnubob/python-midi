@@ -55,7 +55,7 @@ class AbstractEvent(object):
         body = []
         for key in keys:
             val = getattr(self, key)
-            keyval = "%s=%s" % (key, val)
+            keyval = "%s=%r" % (key, val)
             body.append(keyval)
         body = str.join(', ', body)
         return "midi.%s(%s)" % (self.__class__.__name__, body)

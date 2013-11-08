@@ -238,10 +238,9 @@ class TrackNameEvent(MetaEvent):
     length = 'varlen'
     
     def __init__(self, **kw):
-        if 'trackname' not in kw:
-            kw = kw.copy()
-            kw['trackname'] = ''.join(chr(datum) for datum in self.data)
         super(TrackNameEvent, self).__init__(**kw)
+        if 'trackname' not in kw:
+            self.trackname = ''.join(chr(datum) for datum in self.data)
     
     def __repr__(self):
         return self.__baserepr__(['trackname'])

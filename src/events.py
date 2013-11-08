@@ -1,4 +1,3 @@
-import pdb
 import math
 
 class EventRegistry(object):
@@ -18,11 +17,6 @@ class EventRegistry(object):
             raise ValueError, "Unknown bases class in event type: "+event.name
     register_event = classmethod(register_event)
 
-
-"""
-EventMIDI : Concrete class used to describe MIDI Events.
-Inherits from Event.
-"""
 
 class AbstractEvent(object):
     __slots__ = ['tick', 'data']
@@ -63,11 +57,6 @@ class AbstractEvent(object):
     def __repr__(self):
         return self.__baserepr__()
 
-"""
-MetaEvent is a special subclass of Event that is not meant to
-be used as a concrete class.  It defines a subset of Events known
-as the Meta  events.
-"""
 
 class Event(AbstractEvent):
     __slots__ = ['channel']
@@ -77,7 +66,6 @@ class Event(AbstractEvent):
         if 'channel' not in kw:
             kw = kw.copy()
             kw['channel'] = 0
-            #self.__kw = kw
         super(Event, self).__init__(**kw)
 
     def copy(self, **kw):
@@ -89,9 +77,6 @@ class Event(AbstractEvent):
         if self.tick < other.tick: return -1
         elif self.tick > other.tick: return 1
         return 0
-        #if self.channel < other.channel: return -1
-        #elif self.channel > other.channel: return 1
-        #return cmp(self.data, other.data)
 
     def __repr__(self):
         return self.__baserepr__(['channel'])
@@ -104,7 +89,7 @@ class Event(AbstractEvent):
 """
 MetaEvent is a special subclass of Event that is not meant to
 be used as a concrete class.  It defines a subset of Events known
-as the Meta  events.
+as the Meta events.
 """
 
 class MetaEvent(AbstractEvent):

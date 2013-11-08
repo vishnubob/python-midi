@@ -75,7 +75,7 @@ class FileReader(object):
                     break
                 data.append(datum)
             return SysexEvent(tick=tick, data=data)
-        # not a Meta MIDI event, must be a general message
+        # not a Meta MIDI event or a Sysex event, must be a general message
         else:
             key = stsmsg & 0xF0
             if key not in EventRegistry.Events:
@@ -133,7 +133,7 @@ class FileWriter(object):
             ret += chr(0xF0)
             ret += str.join('', map(chr, event.data))
             ret += chr(0xF7)
-        # not a Meta MIDI event, must be a general message
+        # not a Meta MIDI event or a Sysex event, must be a general message
         elif isinstance(event, Event):
             if not self.RunningStatus or \
                 self.RunningStatus.statusmsg != event.statusmsg or \

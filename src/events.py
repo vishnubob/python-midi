@@ -236,6 +236,15 @@ class TrackNameEvent(MetaEvent):
     name = 'Track Name'
     metacommand = 0x03
     length = 'varlen'
+    
+    def __init__(self, **kw):
+        if 'trackname' not in kw:
+            kw = kw.copy()
+            kw['trackname'] = ''.join(chr(datum) for datum in self.data)
+        super(TrackNameEvent, self).__init__(**kw)
+    
+    def __repr__(self):
+        return self.__baserepr__(['trackname'])
 
 class InstrumentNameEvent(MetaEvent):
     name = 'Instrument Name'

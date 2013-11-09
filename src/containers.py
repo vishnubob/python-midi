@@ -17,6 +17,18 @@ class Pattern(list):
     def make_ticks_rel(self):
         for track in self:
             track.make_ticks_rel()
+            
+    def __getitem__(self, item):
+        if isinstance(item, slice):
+            indices = item.indices(len(self))
+            return Pattern(resolution=self.resolution, format=self.format,
+                            tracks=(super(Pattern, self).__getitem__(i) for i in xrange(*indices)))
+        else:
+            return super(Pattern, self).__getitem__(item)
+            
+    def __getslice__(self, i, j):
+        # The deprecated __getslice__ is still called when subclassing built-in types
+        return self.__getitem__(slice(i,j))
 
 class Track(list):
     def make_ticks_abs(self):
@@ -30,3 +42,14 @@ class Track(list):
         for event in self:
             event.tick -= running_tick
             running_tick += event.tick
+
+    def __getitem__(self, item):
+        if isinstance(item, slice):
+            indices = item.indices(len(self))
+            return Track((super(Track, self).__getitem__(i) for i in xrange(*indices)))
+        else:
+            return super(Track, self).__getitem__(item)
+            
+    def __getslice__(self, i, j):
+        # The deprecated __getslice__ is still called when subclassing built-in types
+        return self.__getitem__(slice(i,j))

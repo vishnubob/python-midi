@@ -7,7 +7,7 @@ class Pattern(list):
         super(Pattern, self).__init__(tracks)
 
     def __repr__(self):
-        return "midi.Pattern(format=%s, resolution=%s, tracks=\\\n%s)" % \
+        return "midi.Pattern(format=%r, resolution=%r, tracks=\\\n%s)" % \
             (self.format, self.resolution, pformat(list(self)))
 
     def make_ticks_abs(self):
@@ -53,3 +53,6 @@ class Track(list):
     def __getslice__(self, i, j):
         # The deprecated __getslice__ is still called when subclassing built-in types
         return self.__getitem__(slice(i,j))
+
+    def __repr__(self):
+        return "midi.Track(\\\n  %s)" % (pformat(list(self)).replace('\n', '\n  '), )

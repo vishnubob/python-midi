@@ -28,6 +28,7 @@ class Pattern(list):
             
     def __getslice__(self, i, j):
         # The deprecated __getslice__ is still called when subclassing built-in types
+        # for calls of the form List[i:j]
         return self.__getitem__(slice(i,j))
 
 class Track(list):
@@ -52,6 +53,7 @@ class Track(list):
             
     def __getslice__(self, i, j):
         # The deprecated __getslice__ is still called when subclassing built-in types
+        # for calls of the form List[i:j]
         return self.__getitem__(slice(i,j))
 
     def __repr__(self):

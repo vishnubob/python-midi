@@ -5,14 +5,14 @@ class EventRegistry(object):
     MetaEvents = {}
 
     def register_event(cls, event, bases):
-        if MetaEvent in bases:
-            assert event.metacommand not in cls.MetaEvents, \
-                            "Event %s already registered" % event.name
-            cls.MetaEvents[event.metacommand] = event
-        elif (Event in bases) or (NoteEvent in bases):
+        if (Event in bases) or (NoteEvent in bases):
             assert event.statusmsg not in cls.Events, \
                             "Event %s already registered" % event.name
             cls.Events[event.statusmsg] = event
+        elif (MetaEvent in bases) or (MetaEventWithText in bases):
+            assert event.metacommand not in cls.MetaEvents, \
+                            "Event %s already registered" % event.name
+            cls.MetaEvents[event.metacommand] = event
         else:
             raise ValueError, "Unknown bases class in event type: "+event.name
     register_event = classmethod(register_event)
@@ -26,7 +26,8 @@ class AbstractEvent(object):
 
     class __metaclass__(type):
         def __init__(cls, name, bases, dict):
-            if name not in ['AbstractEvent', 'Event', 'MetaEvent', 'NoteEvent']:
+            if name not in ['AbstractEvent', 'Event', 'MetaEvent', 'NoteEvent',
+                            'MetaEventWithText']:
                 EventRegistry.register_event(cls, bases)
 
     def __init__(self, **kw):
@@ -207,45 +208,46 @@ class SequenceNumberMetaEvent(MetaEvent):
     metacommand = 0x00
     length = 2
 
-class TextMetaEvent(MetaEvent):
+class MetaEventWithText(MetaEvent):
+    def __init__(self, **kw):
+        super(MetaEventWithText, self).__init__(**kw)
+        if 'text' not in kw:
+            self.text = ''.join(chr(datum) for datum in self.data)
+    
+    def __repr__(self):
+        return self.__baserepr__(['text'])
+
+class TextMetaEvent(MetaEventWithText):
     name = 'Text'
     metacommand = 0x01
     length = 'varlen'
 
-class CopyrightMetaEvent(MetaEvent):
+class CopyrightMetaEvent(MetaEventWithText):
     name = 'Copyright Notice'
     metacommand = 0x02
     length = 'varlen'
 
-class TrackNameEvent(MetaEvent):
+class TrackNameEvent(MetaEventWithText):
     name = 'Track Name'
     metacommand = 0x03
     length = 'varlen'
-    
-    def __init__(self, **kw):
-        super(TrackNameEvent, self).__init__(**kw)
-        if 'trackname' not in kw:
-            self.trackname = ''.join(chr(datum) for datum in self.data)
-    
-    def __repr__(self):
-        return self.__baserepr__(['trackname'])
 
-class InstrumentNameEvent(MetaEvent):
+class InstrumentNameEvent(MetaEventWithText):
     name = 'Instrument Name'
     metacommand = 0x04
     length = 'varlen'
 
-class LyricsEvent(MetaEvent):
+class LyricsEvent(MetaEventWithText):
     name = 'Lyrics'
     metacommand = 0x05
     length = 'varlen'
 
-class MarkerEvent(MetaEvent):
+class MarkerEvent(MetaEventWithText):
     name = 'Marker'
     metacommand = 0x06
     length = 'varlen'
 
-class CuePointEvent(MetaEvent):
+class CuePointEvent(MetaEventWithText):
     name = 'Cue Point'
     metacommand = 0x07
     length = 'varlen'

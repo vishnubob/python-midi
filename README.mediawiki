@@ -86,21 +86,11 @@ functions to manipulate all events within a track.
 There are 27 different MIDI Events supported.  In this example, three different
 MIDI events are created and added to the MIDI Track:  
 
-# The NoteOnEvent captures the start of note, like a piano player pushing down on
-a piano key.  The tick is when this event occurred, the pitch is the note value
-of the key pressed, and the velocity represents how hard the key was pressed.
+# The NoteOnEvent captures the start of note, like a piano player pushing down on a piano key.  The tick is when this event occurred, the pitch is the note value of the key pressed, and the velocity represents how hard the key was pressed.
 
-# The NoteOffEvent captures the end of note, just like a piano player removing
-her finger from a depressed piano key.  Once again, the tick is when this event
-occurred, the pitch is the note that is released, and the velocity has no real
-world analogy and is usually ignored.  NoteOnEvents with a velocity of zero are
-equivalent to NoteOffEvents.
+# The NoteOffEvent captures the end of note, just like a piano player removing her finger from a depressed piano key.  Once again, the tick is when this event occurred, the pitch is the note that is released, and the velocity has no real world analogy and is usually ignored.  NoteOnEvents with a velocity of zero are equivalent to NoteOffEvents.
 
-# The EndOfTrackEvent is a special event, and is used to indicate to MIDI
-sequencing software when the song ends.  With creating Patterns with multiple
-Tracks, you only need one EndOfTrack event for the entire song.  Most MIDI
-software will refuse to load a MIDI file if it does not contain an EndOfTrack
-event.
+# The EndOfTrackEvent is a special event, and is used to indicate to MIDI sequencing software when the song ends.  With creating Patterns with multiple Tracks, you only need one EndOfTrack event for the entire song.  Most MIDI software will refuse to load a MIDI file if it does not contain an EndOfTrack event.
 
 You might notice that the EndOfTrackEvent has a tick value of 1.  This is
 because MIDI represents ticks in relative time.  The actual tick offset of the

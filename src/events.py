@@ -234,14 +234,6 @@ class InstrumentNameEvent(MetaEvent):
     name = 'Instrument Name'
     metacommand = 0x04
     length = 'varlen'
-    
-    def __init__(self, **kw):
-        super(InstrumentNameEvent, self).__init__(**kw)
-        if 'instrumentname' not in kw:
-            self.instrumentname = ''.join(chr(datum) for datum in self.data)
-    
-    def __repr__(self):
-        return self.__baserepr__(['instrumentname'])
 
 class LyricsEvent(MetaEvent):
     name = 'Lyrics'

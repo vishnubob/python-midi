@@ -4,25 +4,11 @@ Print a description of a MIDI file.
 """
 import midi
 import sys
-import pickle
 
 if len(sys.argv) != 2:
     print "Usage: {0} <midifile>".format(sys.argv[0])
     sys.exit(2)
 
 midifile = sys.argv[1]
-
 pattern = midi.read_midifile(midifile)
-
-for track in pattern:
-    # Distribution of notes for this track
-    histogram = [0] * 11
-
-    for event in track:
-        if isinstance(event, midi.NoteEvent):
-            idx = event.pitch / 12
-            histogram[idx] += 1
-
-    print histogram
-
 print repr(pattern)

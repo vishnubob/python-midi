@@ -264,6 +264,11 @@ class CuePointEvent(MetaEventWithText):
     metacommand = 0x07
     length = 'varlen'
 
+class ProgramNameEvent(MetaEventWithText):
+    name = 'Program Name'
+    metacommand = 0x08
+    length = 'varlen'
+
 class SomethingEvent(MetaEvent):
     name = 'Something'
     metacommand = 0x09

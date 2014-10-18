@@ -404,7 +404,7 @@ class SequencerHardware(Sequencer):
 class SequencerRead(Sequencer):
     DefaultArguments = {
       'alsa_sequencer_name':'__SequencerRead__',
-      'sequencer_stream':not S.SND_SEQ_NONBLOCK,
+      'alsa_sequencer_stream': S.SND_SEQ_OPEN_DUPLEX,
       'alsa_port_caps':S.SND_SEQ_PORT_CAP_WRITE | S.SND_SEQ_PORT_CAP_SUBS_WRITE,
     }
 
@@ -419,7 +419,7 @@ class SequencerRead(Sequencer):
 class SequencerWrite(Sequencer):
     DefaultArguments = {
       'alsa_sequencer_name':'__SequencerWrite__',
-      'sequencer_stream':not S.SND_SEQ_NONBLOCK,
+      'alsa_sequencer_stream': S.SND_SEQ_OPEN_DUPLEX,
       'alsa_port_caps':S.SND_SEQ_PORT_CAP_READ | S.SND_SEQ_PORT_CAP_SUBS_READ
     }
 
@@ -432,7 +432,7 @@ class SequencerWrite(Sequencer):
 class SequencerDuplex(Sequencer):
     DefaultArguments = {
       'alsa_sequencer_name':'__SequencerDuplex__',
-      'sequencer_stream':not S.SND_SEQ_NONBLOCK,
+      'alsa_sequencer_stream': S.SND_SEQ_OPEN_DUPLEX,
       'alsa_port_caps':S.SND_SEQ_PORT_CAP_READ | S.SND_SEQ_PORT_CAP_SUBS_READ |
                       S.SND_SEQ_PORT_CAP_WRITE | S.SND_SEQ_PORT_CAP_SUBS_WRITE
     }

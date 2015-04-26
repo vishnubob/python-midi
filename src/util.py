@@ -17,22 +17,22 @@ def read_varlen(data):
     return value
 
 def write_varlen(value):
-    chr1 = chr(value & 0x7F)
+    b1 = value & 0x7F
     value >>= 7
     if value:
-        chr2 = chr((value & 0x7F) | 0x80)
+        b2 = (value & 0x7F) | 0x80
         value >>= 7
         if value:
-            chr3 = chr((value & 0x7F) | 0x80)
+            b3 = (value & 0x7F) | 0x80
             value >>= 7
             if value:
-                chr4 = chr((value & 0x7F) | 0x80)
-                res = chr4 + chr3 + chr2 + chr1
+                b4 = (value & 0x7F) | 0x80
+                res = bytes((b4,b3,b2,b1))
             else:
-                res = chr3 + chr2 + chr1
+                res = bytes((b3,b2,b1))
         else:
-            res = chr2 + chr1
+            res = bytes((b2,b1))
     else:
-        res = chr1
+        res = bytes((b1,))
     return res
 

@@ -25,14 +25,14 @@ class Pattern(list):
         if isinstance(item, slice):
             indices = item.indices(len(self))
             return Pattern(resolution=self.resolution, format=self.format,
-                            tracks=(super(Pattern, self).__getitem__(i) for i in xrange(*indices)))
+                            tracks=(super(Pattern, self).__getitem__(i) for i in range(*indices)))
         else:
             return super(Pattern, self).__getitem__(item)
 
     def __getslice__(self, i, j):
         # The deprecated __getslice__ is still called when subclassing built-in types
         # for calls of the form List[i:j]
-        return self.__getitem__(slice(i,j))
+        return self.__getitem__(slice(i, j))
 
 class Track(list):
     def __init__(self, events=[], tick_relative=True):
@@ -58,14 +58,14 @@ class Track(list):
     def __getitem__(self, item):
         if isinstance(item, slice):
             indices = item.indices(len(self))
-            return Track((super(Track, self).__getitem__(i) for i in xrange(*indices)))
+            return Track((super(Track, self).__getitem__(i) for i in range(*indices)))
         else:
             return super(Track, self).__getitem__(item)
 
     def __getslice__(self, i, j):
         # The deprecated __getslice__ is still called when subclassing built-in types
         # for calls of the form List[i:j]
-        return self.__getitem__(slice(i,j))
+        return self.__getitem__(slice(i, j))
 
     def __repr__(self):
         return "midi.Track(\\\n  %s)" % (pformat(list(self)).replace('\n', '\n  '), )

@@ -1,8 +1,8 @@
 import select
-import sequencer_alsa as S
+from . import sequencer_alsa as S
 import midi
 
-__SWIG_NS_SET__ = set(['__class__', '__del__', '__delattr__', '__dict__', '__doc__', '__getattr__', '__getattribute__', '__hash__', '__init__', '__module__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__str__', '__swig_getmethods__', '__swig_setmethods__', '__weakref__', 'this', 'thisown'])
+__SWIG_NS_SET__ = {'__class__', '__del__', '__delattr__', '__dict__', '__doc__', '__getattr__', '__getattribute__', '__hash__', '__init__', '__module__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__str__', '__swig_getmethods__', '__swig_setmethods__', '__weakref__', 'this', 'thisown'}
 
 def stringify(name, obj, indent=0):
     retstr = ''
@@ -21,16 +21,16 @@ def stringify(name, obj, indent=0):
 
 class Sequencer(object):
     __ARGUMENTS__ = {
-        'alsa_sequencer_name':'__sequencer__',
-        'alsa_sequencer_stream':S.SND_SEQ_OPEN_DUPLEX,
-        'alsa_sequencer_mode':S.SND_SEQ_NONBLOCK,
-        'alsa_sequencer_type':'default',
-        'alsa_port_name':'__port__',
-        'alsa_port_caps':S.SND_SEQ_PORT_CAP_READ,
-        'alsa_port_type':S.SND_SEQ_PORT_TYPE_MIDI_GENERIC,
-        'alsa_queue_name':'__queue__',
-        'sequencer_tempo':120,
-        'sequencer_resolution':1000,
+        'alsa_sequencer_name': '__sequencer__',
+        'alsa_sequencer_stream': S.SND_SEQ_OPEN_DUPLEX,
+        'alsa_sequencer_mode': S.SND_SEQ_NONBLOCK,
+        'alsa_sequencer_type': 'default',
+        'alsa_port_name': '__port__',
+        'alsa_port_caps': S.SND_SEQ_PORT_CAP_READ,
+        'alsa_port_type': S.SND_SEQ_PORT_TYPE_MIDI_GENERIC,
+        'alsa_queue_name': '__queue__',
+        'sequencer_tempo': 120,
+        'sequencer_resolution': 1000,
     }
     DefaultArguments = {}
 
@@ -71,7 +71,7 @@ class Sequencer(object):
     def _error(self, errcode):
         strerr = S.snd_strerror(errcode)
         msg = "ALSAError[%d]: %s" % (errcode, strerr)
-        raise RuntimeError, msg
+        raise RuntimeError(msg)
 
     def _init_handle(self):
         ret = S.open_client(self.alsa_sequencer_name,
@@ -268,7 +268,7 @@ class Sequencer(object):
             seqev.data.control.value = event.pitch
         ## Unknown
         else:
-            print "Warning :: Unknown event type: %s" % event
+            print("Warning :: Unknown event type: %s" % event)
             return None
             
         err = S.snd_seq_event_output(self.client, seqev)
@@ -323,7 +323,7 @@ class SequencerHardware(Sequencer):
             self._ports[name] = port
 
         def __iter__(self):
-            return self._ports.itervalues()
+            return iter(self._ports.values())
 
         def __len__(self):
             return len(self._ports)
@@ -359,7 +359,7 @@ class SequencerHardware(Sequencer):
         self._query_clients()
 
     def __iter__(self):
-        return self._clients.itervalues()
+        return iter(self._clients.values())
 
     def __len__(self):
         return len(self._clients)
@@ -403,9 +403,9 @@ class SequencerHardware(Sequencer):
 
 class SequencerRead(Sequencer):
     DefaultArguments = {
-      'sequencer_name':'__SequencerRead__',
-      'sequencer_stream':not S.SND_SEQ_NONBLOCK,
-      'alsa_port_caps':S.SND_SEQ_PORT_CAP_WRITE | S.SND_SEQ_PORT_CAP_SUBS_WRITE,
+      'sequencer_name': '__SequencerRead__',
+      'sequencer_stream': not S.SND_SEQ_NONBLOCK,
+      'alsa_port_caps': S.SND_SEQ_PORT_CAP_WRITE | S.SND_SEQ_PORT_CAP_SUBS_WRITE,
     }
 
     def subscribe_port(self, client, port):

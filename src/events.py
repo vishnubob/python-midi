@@ -14,7 +14,7 @@ class EventRegistry(object):
                             "Event %s already registered" % event.name
             cls.MetaEvents[event.metacommand] = event
         else:
-            raise ValueError, "Unknown bases class in event type: "+event.name
+            raise ValueError("Unknown bases class in event type: "+event.name)
     register_event = classmethod(register_event)
 
 
@@ -31,7 +31,7 @@ class AbstractEvent(object):
                 EventRegistry.register_event(cls, bases)
 
     def __init__(self, **kw):
-        if type(self.length) == int:
+        if isinstance(self.length, int):
             defdata = [0] * self.length
         else:
             defdata = []
@@ -304,7 +304,7 @@ class SetTempoEvent(MetaEvent):
 
     def get_mpqn(self):
         assert(len(self.data) == 3)
-        vals = [self.data[x] << (16 - (8 * x)) for x in xrange(3)]
+        vals = [self.data[x] << (16 - (8 * x)) for x in range(3)]
         return sum(vals)
     def set_mpqn(self, val):
         self.data = [(val >> (16 - (8 * x)) & 0xFF) for x in range(3)]

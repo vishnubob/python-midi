@@ -96,63 +96,81 @@ class FileReader(object):
         raise Warning("Unknown MIDI Event: " + repr(stsmsg))
 
 class FileWriter(object):
-    def write(self, midifile, pattern):
-        self.write_file_header(midifile, pattern)
+    RunningStatus = None
+    def __init__(self,file):
+        self.file = file
+    def write(self, pattern):
+        self.write_file_header(pattern)
         for track in pattern:
-            self.write_track(midifile, track)
+            self.write_track(track)
 
-    def write_file_header(self, midifile, pattern):
+    def write_file_header(self, pattern):
         # First four bytes are MIDI header
         packdata = pack(">LHHH", 6,    
                             pattern.format, 
                             len(pattern),
                             pattern.resolution)
-        midifile.write('MThd%s' % packdata)
+        self.file.write(b'MThd' + packdata)
             
-    def write_track(self, midifile, track):
-        buf = ''
-        self.RunningStatus = None
+
+    def write_track(self, track):
+        hlen = len(self.encode_track_header(0))
+        buf = bytearray(b'0'*hlen)
         for event in track:
-            buf += self.encode_midi_event(event)
-        buf = self.encode_track_header(len(buf)) + buf
-        midifile.write(buf)
+            buf.extend(self.encode_midi_event(event))
+        buf[:hlen] = self.encode_track_header(len(buf)-hlen)
+        self.file.write(buf)
 
+    def write_track_header(self,track=None):
+        trklen = 1 if track is None else track if isinstance(track,int) else len(track)
+        self.file.write(self.encode_track_header(trklen))
+        
     def encode_track_header(self, trklen):
-        return 'MTrk%s' % pack(">L", trklen)
+        return b'MTrk' + pack(">L", trklen)
 
+    def write_midi_event(self, event):
+        # be sure to write the track and pattern headers first
+        # can stream to timidity or fluidsynth this way
+        self.file.write(self.encode_midi_event(event))
+        
     def encode_midi_event(self, event):
-        ret = ''
-        ret += write_varlen(event.tick)
+        ret = bytearray()
+        #assert hasattr(event,'tick'), event
+        assert isinstance(event.tick,int), event.tick
+        ret.extend(write_varlen(event.tick))
         # is the event a MetaEvent?
         if isinstance(event, MetaEvent):
-            ret += chr(event.statusmsg) + chr(event.metacommand)
-            ret += write_varlen(len(event.data))
-            ret += str.join('', list(map(chr, event.data)))
+            ret.append(event.statusmsg)
+            ret.append(event.metacommand)
+            ret.extend(write_varlen(len(event.data)))
+            ret.extend(event.data)
         # is this event a Sysex Event?
         elif isinstance(event, SysexEvent):
-            ret += chr(0xF0)
-            ret += str.join('', list(map(chr, event.data)))
-            ret += chr(0xF7)
+            ret.append(0xF0)
+            ret.extend(event.data)
+            ret.append(0xF7)
         # not a Meta MIDI event or a Sysex event, must be a general message
         elif isinstance(event, Event):
             if not self.RunningStatus or \
                 self.RunningStatus.statusmsg != event.statusmsg or \
                 self.RunningStatus.channel != event.channel:
                     self.RunningStatus = event
-                    ret += chr(event.statusmsg | event.channel)
-            ret += str.join('', list(map(chr, event.data)))
+                    ret.append(event.statusmsg | event.channel)
+            ret.extend(event.data)
         else:
             raise ValueError("Unknown MIDI Event: " + str(event))
         return ret
 
 def write_midifile(midifile, pattern):
     if type(midifile) in (str, str):
-        midifile = open(midifile, 'wb')
-    writer = FileWriter()
-    return writer.write(midifile, pattern)
+        with open(midifile, 'wb') as out:
+            return write_midifile(out,pattern)
+    writer = FileWriter(midifile)
+    return writer.write(pattern)
 
 def read_midifile(midifile):
-    if type(midifile) in (str, str):
-        midifile = open(midifile, 'rb')
+    if type(midifile) in (str, bytes):
+        with open(midifile, 'rb') as inp:
+            return read_midifile(inp)
     reader = FileReader()
     return reader.read(midifile)

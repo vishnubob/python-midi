@@ -6,4 +6,4 @@ import midi.sequencer as sequencer
 
 s = sequencer.SequencerHardware()
 
-print s
+print(s)

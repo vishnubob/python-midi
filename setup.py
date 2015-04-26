@@ -3,22 +3,22 @@
 from distutils.core import setup, Extension
 
 __base__ = {
-    'name':'midi', 
-    'version':'v0.2.3',
-    'description':'Python MIDI API',
-    'author':'giles hall',
-    'author_email':'ghall@csh.rit.edu',
-    'package_dir':{'midi':'src'},
-    'py_modules':['midi.containers', 'midi.__init__', 'midi.events', 'midi.util', 'midi.fileio', 'midi.constants'],
-    'ext_modules':[],
-    'ext_package':'',
-    'scripts':['scripts/mididump.py', 'scripts/mididumphw.py', 'scripts/midiplay.py'],
+    'name': 'midi', 
+    'version': 'v0.2.3',
+    'description': 'Python MIDI API',
+    'author': 'giles hall',
+    'author_email': 'ghall@csh.rit.edu',
+    'package_dir': {'midi':'src'},
+    'py_modules': ['midi.containers', 'midi.__init__', 'midi.events', 'midi.util', 'midi.fileio', 'midi.constants'],
+    'ext_modules': [],
+    'ext_package': '',
+    'scripts': ['scripts/mididump.py', 'scripts/mididumphw.py', 'scripts/midiplay.py'],
 }
 
 def setup_alsa(ns):
     srclist = ["src/sequencer_alsa/sequencer_alsa.i"]
     extns = {
-        'libraries':['asound'],
+        'libraries': ['asound'],
         #'extra_compile_args':['-DSWIGRUNTIME_DEBUG']
     }
     ext = Extension('_sequencer_alsa', srclist, **extns)
@@ -38,7 +38,7 @@ def configure_platform():
         setup_alsa(ns)
         pass
     else:
-        print "No sequencer available for '%s' platform." % platform
+        print("No sequencer available for '%s' platform." % platform)
     return ns
 
 if __name__ == "__main__":

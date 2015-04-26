@@ -100,16 +100,18 @@ class FileWriter(object):
     def __init__(self,file):
         self.file = file
     def write(self, pattern):
-        self.write_file_header(pattern)
+        self.write_file_header(pattern,len(pattern))
         for track in pattern:
             self.write_track(track)
 
-    def write_file_header(self, pattern):
+    def write_file_header(self, pattern, length=None):
+        if length is None:
+            length = len(pattern)
         # First four bytes are MIDI header
-        packdata = pack(">LHHH", 6,    
-                            pattern.format, 
-                            len(pattern),
-                            pattern.resolution)
+        packdata = pack(">LHHH", 6,
+                        pattern.format, 
+                        length,
+                        pattern.resolution)
         self.file.write(b'MThd' + packdata)
             
 

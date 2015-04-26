@@ -12,13 +12,13 @@ pattern.append(midi.Track((
 track = midi.Track()
 pattern.append(track)
 #reverb
-track.append(midi.ControlChangeEvent(tick=0,data=[91,58]))
-track.append(midi.ControlChangeEvent(tick=0,data=[10,69]))
+#track.append(midi.ControlChangeEvent(tick=0,data=[91,58]))
+#track.append(midi.ControlChangeEvent(tick=0,data=[10,69]))
 #msb
-track.append(midi.ControlChangeEvent(tick=0,channel=0,data=[0,0]))
+#track.append(midi.ControlChangeEvent(tick=0,channel=0,data=[0,0]))
 #lsb
-track.append(midi.ControlChangeEvent(tick=0,channel=0,data=[32,0]))
-track.append(midi.ProgramChangeEvent(tick=0,channel=0,data=[24]))
+#track.append(midi.ControlChangeEvent(tick=0,channel=0,data=[32,0]))
+#track.append(midi.ProgramChangeEvent(tick=0,channel=0,data=[24]))
 # Instantiate a MIDI note on event, append it to the track
 track.append(midi.NoteOnEvent(tick=0, velocity=200, pitch=midi.G_4))
 # Instantiate a MIDI note off event, append it to the track

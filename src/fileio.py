@@ -79,7 +79,7 @@ class FileReader(object):
         else:
             key = stsmsg & 0xF0
             if key not in EventRegistry.Events:
-                assert self.RunningStatus, "Bad byte value"
+                assert self.RunningStatus, ("Bad byte value", tick, stsmsg, bytes(trackdata))
                 data = []
                 key = self.RunningStatus & 0xF0
                 cls = EventRegistry.Events[key]
@@ -153,11 +153,11 @@ class FileWriter(object):
             ret.append(0xF7)
         # not a Meta MIDI event or a Sysex event, must be a general message
         elif isinstance(event, Event):
-            if not self.RunningStatus or \
-                self.RunningStatus.statusmsg != event.statusmsg or \
-                self.RunningStatus.channel != event.channel:
-                    self.RunningStatus = event
-                    ret.append(event.statusmsg | event.channel)
+            # why in the heeeeeeeeelp would you not write the status message
+            # here? doesn't matter if it's the same as last time. the byte
+            # needs to be there!
+            
+            ret.append(event.statusmsg | event.channel)
             ret.extend(event.data)
         else:
             raise ValueError("Unknown MIDI Event: " + str(event))

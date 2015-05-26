@@ -25,6 +25,7 @@ feature set to offer.
 * A reader and writer, so you can read and write your MIDI tracks to disk.
 
 ==Installation==
+First, make sure you have swig installed (www.swig.org)
 
 Follow the [http://docs.python.org/2/install/index.html normal procedure for Python module installation]:
 

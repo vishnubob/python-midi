@@ -6,6 +6,14 @@ def main():
     p = s.Popen(["timidity"]+['--verbose']*1+["-"],stdin=s.PIPE)
     writer = midi.FileWriter(p.stdin)
     writer.write_file_header(midi.Pattern(),2)
+    track = midi.Track((
+        midi.TimeSignatureEvent(tick=0,numerator=4,denominator=4,
+                            metronome=24,
+                            thirtyseconds=8),
+        midi.KeySignatureEvent(tick=0),
+        midi.EndOfTrackEvent(tick=1)
+    ))
+    writer.write_track(track)
 
     def song():
         for i in range(5):

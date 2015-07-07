@@ -1,0 +1,18 @@
+language: python
+python:
+    - 2.6
+    - 2.7
+    - 3.2
+    - 3.3
+    - 3.4
+    - nightly
+before_install:
+    - date -u
+    - uname -a
+    - lsb_release -a
+    - sudo apt-get -qq update
+    - sudo apt-get install build-essential python-dev swig libasound2-dev
+install:
+    - python setup.py install
+script:
+    - nosetests

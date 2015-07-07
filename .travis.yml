@@ -7,7 +7,7 @@ before_install:
     - uname -a
     - lsb_release -a
     - sudo apt-get -qq update
-    - sudo apt-get install build-essential python-dev swig
+    - sudo apt-get install build-essential python-dev swig libasound2-dev
 install:
     - python setup.py install
 script:

@@ -41,6 +41,8 @@ for event in events:
         continue
     if buf < 1000:
         time.sleep(.5)
-time.sleep(30)
+while event.tick > seq.queue_get_tick_time():
+    seq.drain()
+    time.sleep(.5)
 
 print 'The end?'

@@ -1,3 +1,5 @@
+from warnings import *
+
 from containers import *
 from events import *
 from struct import unpack, pack
@@ -61,11 +63,13 @@ class FileReader(object):
         if MetaEvent.is_event(stsmsg):
             cmd = ord(trackdata.next())
             if cmd not in EventRegistry.MetaEvents:
-                raise Warning, "Unknown Meta MIDI Event: " + `cmd`
-            cls = EventRegistry.MetaEvents[cmd]
+                warn("Unknown Meta MIDI Event: " + `cmd`, Warning)
+                cls = UnknownMetaEvent
+            else:
+                cls = EventRegistry.MetaEvents[cmd]
             datalen = read_varlen(trackdata)
             data = [ord(trackdata.next()) for x in range(datalen)]
-            return cls(tick=tick, data=data)
+            return cls(tick=tick, data=data, metacommand=cmd)
         # is this event a Sysex Event?
         elif SysexEvent.is_event(stsmsg):
             data = []

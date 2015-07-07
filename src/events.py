@@ -10,9 +10,10 @@ class EventRegistry(object):
                             "Event %s already registered" % event.name
             cls.Events[event.statusmsg] = event
         elif (MetaEvent in bases) or (MetaEventWithText in bases):
-            assert event.metacommand not in cls.MetaEvents, \
-                            "Event %s already registered" % event.name
-            cls.MetaEvents[event.metacommand] = event
+            if event.metacommand is not None:
+                assert event.metacommand not in cls.MetaEvents, \
+                                "Event %s already registered" % event.name
+                cls.MetaEvents[event.metacommand] = event
         else:
             raise ValueError, "Unknown bases class in event type: "+event.name
     register_event = classmethod(register_event)
@@ -269,9 +270,19 @@ class ProgramNameEvent(MetaEventWithText):
     metacommand = 0x08
     length = 'varlen'
 
-class SomethingEvent(MetaEvent):
-    name = 'Something'
-    metacommand = 0x09
+class UnknownMetaEvent(MetaEvent):
+    name = 'Unknown'
+    # This class variable must be overriden by code calling the constructor,
+    # which sets a local variable of the same name to shadow the class variable.
+    metacommand = None
+
+    def __init__(self, **kw):
+        super(MetaEvent, self).__init__(**kw)
+        self.metacommand = kw['metacommand']
+
+    def copy(self, **kw):
+        kw['metacommand'] = self.metacommand
+        return super(UnknownMetaEvent, self).copy(kw)
 
 class ChannelPrefixEvent(MetaEvent):
     name = 'Channel Prefix'

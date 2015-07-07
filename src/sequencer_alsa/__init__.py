@@ -1,1 +1,4 @@
-from sequencer import *
+try:
+    from sequencer import *
+except ImportError:
+    pass

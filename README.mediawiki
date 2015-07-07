@@ -1,4 +1,4 @@
-[[https://travis-ci.org/vishnubob/python-midi.svg?branch=master]]
+<a href="https://travis-ci.org/vishnubob/python-midi"><img src="https://travis-ci.org/vishnubob/python-midi.svg?branch=master" /></a>
 
 =Python MIDI=
 

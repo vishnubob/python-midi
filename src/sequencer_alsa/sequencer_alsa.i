@@ -3,8 +3,7 @@
 %feature("newobject");
 
 %{
-#include "include/seq_event.h"
-
+#include <alsa/seq_event.h>
 #include <alsa/asoundlib.h>
 
 snd_seq_t*
@@ -147,9 +146,10 @@ PyObject *client_poll_descriptors(snd_seq_t *handle);
 %typemap(out) ssize_t { $result = PyInt_FromLong($1); }
 %typemap(in) ssize_t { $1 = PyInt_AsLong($input); }
 
-%include "include/seq.h"
-%include "include/seqmid.h"
-%include "include/seq_event.h"
-%include "include/seq_midi_event.h"
-%include "include/error.h"
+#define __attribute__(x) 
 
+%include alsa/seq.h
+%include alsa/seqmid.h
+%include alsa/seq_event.h
+%include alsa/seq_midi_event.h
+%include alsa/error.h

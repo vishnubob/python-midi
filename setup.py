@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 from distutils.core import setup, Extension
 
 __base__ = {
@@ -16,9 +17,23 @@ __base__ = {
 }
 
 def setup_alsa(ns):
+    # scan for alsa include directory
+    dirs = ["/usr/include", "/usr/local/include"]
+    testfile = "alsa/asoundlib.h"
+    alsadir = None
+    for _dir in dirs:
+        tfn = os.path.join(_dir, testfile)
+        if os.path.exists(tfn):
+            alsadir = _dir
+            break
+    if not alsadir:
+        print("Warning: could not find asoundlib.h, not including ALSA sequencer support!")
+        return
     srclist = ["src/sequencer_alsa/sequencer_alsa.i"]
+    include_arg = "-I%s" % alsadir
     extns = {
-        'libraries':['asound'],
+        'libraries': ['asound'],
+        'swig_opts': [include_arg],
         #'extra_compile_args':['-DSWIGRUNTIME_DEBUG']
     }
     ext = Extension('_sequencer_alsa', srclist, **extns)

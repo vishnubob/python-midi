@@ -6,8 +6,8 @@ before_install:
     - uname -a
     - lsb_release -a
     - sudo apt-get -qq update
-    - sudo apt-get install build-essential python-dev swig2.0 libasound2-dev
-    - sudo update-alternatives --install /usr/bin/swig swig2.0 /usr/bin/swig2.0 50
+    - sudo apt-get install build-essential python-dev swig libasound2-dev
+    - sudo chmod 666 /dev/snd/seq
     - swig -version
 install:
     - pip install coveralls

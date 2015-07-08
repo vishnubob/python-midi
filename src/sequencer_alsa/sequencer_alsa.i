@@ -147,6 +147,166 @@ PyObject *client_poll_descriptors(snd_seq_t *handle);
 %typemap(out) ssize_t { $result = PyInt_FromLong($1); }
 %typemap(in) ssize_t { $1 = PyInt_AsLong($input); }
 
+// ignores from seq.h
+%ignore snd_seq_system_info_sizeof;
+%ignore snd_seq_system_info_malloc;
+%ignore snd_seq_system_info_free;
+%ignore snd_seq_system_info_copy;
+
+%ignore snd_seq_client_info_sizeof;
+%ignore snd_seq_client_info_malloc;
+%ignore snd_seq_client_info_free;
+%ignore snd_seq_client_info_copy;
+
+%ignore snd_seq_client_info_get_broadcast_filter;
+%ignore snd_seq_client_info_get_error_bounce;
+%ignore snd_seq_client_info_get_event_filter;
+
+%ignore snd_seq_client_info_set_broadcast_filter;
+%ignore snd_seq_client_info_set_error_bounce;
+%ignore snd_seq_client_info_set_event_filter;
+
+%ignore snd_seq_client_info_event_filter_clear;
+%ignore snd_seq_client_info_event_filter_add;
+%ignore snd_seq_client_info_event_filter_del;
+%ignore snd_seq_client_info_event_filter_check;
+
+%ignore snd_seq_client_pool_malloc;
+%ignore snd_seq_client_pool_free;
+%ignore snd_seq_client_pool_copy;
+
+%ignore snd_seq_client_pool_get_client;
+%ignore snd_seq_client_pool_get_output_pool;
+%ignore snd_seq_client_pool_get_input_pool;
+%ignore snd_seq_client_pool_get_output_room;
+%ignore snd_seq_client_pool_get_output_free;
+%ignore snd_seq_client_pool_get_input_free;
+%ignore snd_seq_client_pool_set_output_pool;
+%ignore snd_seq_client_pool_set_input_pool;
+%ignore snd_seq_client_pool_set_output_room;
+
+%ignore snd_seq_get_client_pool;
+%ignore snd_seq_set_client_pool;
+
+%ignore snd_seq_port_info_sizeof;
+%ignore snd_seq_port_info_malloc;
+%ignore snd_seq_port_info_free;
+%ignore snd_seq_port_info_copy;
+
+%ignore snd_seq_port_subscribe_sizeof;
+%ignore snd_seq_port_subscribe_malloc;
+%ignore snd_seq_port_subscribe_free;
+%ignore snd_seq_port_subscribe_copy;
+
+%ignore snd_seq_query_subscribe_sizeof;
+%ignore snd_seq_query_subscribe_malloc;
+%ignore snd_seq_query_subscribe_free;
+%ignore snd_seq_query_subscribe_copy;
+
+%ignore snd_seq_query_subscribe_get_client;
+%ignore snd_seq_query_subscribe_get_port;
+%ignore snd_seq_query_subscribe_get_root;
+%ignore snd_seq_query_subscribe_get_type;
+%ignore snd_seq_query_subscribe_get_index;
+%ignore snd_seq_query_subscribe_get_num_subs;
+%ignore snd_seq_query_subscribe_get_addr;
+%ignore snd_seq_query_subscribe_get_queue;
+%ignore snd_seq_query_subscribe_get_exclusive;
+%ignore snd_seq_query_subscribe_get_time_update;
+%ignore snd_seq_query_subscribe_get_time_real;
+
+%ignore snd_seq_query_subscribe_set_client;
+%ignore snd_seq_query_subscribe_set_port;
+%ignore snd_seq_query_subscribe_set_root;
+%ignore snd_seq_query_subscribe_set_type;
+%ignore snd_seq_query_subscribe_set_index;
+
+%ignore snd_seq_query_port_subscribers;
+
+
+%ignore snd_seq_queue_info_sizeof;
+%ignore snd_seq_queue_info_malloc;
+%ignore snd_seq_queue_info_free;
+%ignore snd_seq_queue_info_copy;
+
+%ignore snd_seq_queue_info_get_queue;
+%ignore snd_seq_queue_info_get_name;
+%ignore snd_seq_queue_info_get_owner;
+%ignore snd_seq_queue_info_get_locked;
+%ignore snd_seq_queue_info_get_flags;
+
+%ignore snd_seq_queue_info_set_name;
+%ignore snd_seq_queue_info_set_owner;
+%ignore snd_seq_queue_info_set_locked;
+%ignore snd_seq_queue_info_set_flags;
+
+%ignore snd_seq_create_queue;
+// %xx  ignore snd_seq_alloc_named_queue;
+%ignore snd_seq_alloc_queue;
+%ignore snd_seq_free_queue;
+%ignore snd_seq_get_queue_info;
+%ignore snd_seq_set_queue_info;
+%ignore snd_seq_query_named_queue;
+
+%ignore snd_seq_get_queue_usage;
+%ignore snd_seq_set_queue_usage;
+
+
+%ignore snd_seq_queue_status_sizeof;
+%ignore snd_seq_queue_status_malloc;
+%ignore snd_seq_queue_status_free;
+%ignore snd_seq_queue_status_copy;
+
+%ignore snd_seq_queue_status_get_queue;
+%ignore snd_seq_queue_status_get_events;
+%ignore snd_seq_queue_status_get_tick_time;
+%ignore snd_seq_queue_status_get_real_time;
+%ignore snd_seq_queue_status_get_status;
+
+%ignore snd_seq_get_queue_status;
+
+
+%ignore snd_seq_queue_tempo_sizeof;
+%ignore snd_seq_queue_tempo_malloc;
+%ignore snd_seq_queue_tempo_free;
+%ignore snd_seq_queue_tempo_copy;
+
+%ignore snd_seq_queue_tempo_get_queue;
+%ignore snd_seq_queue_tempo_get_tempo;
+%ignore snd_seq_queue_tempo_get_ppq;
+%ignore snd_seq_queue_tempo_get_skew;
+%ignore snd_seq_queue_tempo_get_skew_base;
+%ignore snd_seq_queue_tempo_set_tempo;
+%ignore snd_seq_queue_tempo_set_ppq;
+%ignore snd_seq_queue_tempo_set_skew;
+%ignore snd_seq_queue_tempo_set_skew_base;
+
+%ignore snd_seq_get_queue_tempo;
+%ignore snd_seq_set_queue_tempo;
+
+
+// ignores from seqmid.h
+%ignore snd_seq_set_client_pool_output;
+%ignore snd_seq_set_client_pool_output_room;
+%ignore snd_seq_set_client_pool_input;
+
+// ignores from seq_event.h
+
+
+// ignores from seq_midi_event.h
+%ignore snd_midi_event_new;
+%ignore snd_midi_event_resize_buffer;
+%ignore snd_midi_event_free;
+%ignore snd_midi_event_init;
+%ignore snd_midi_event_reset_encode;
+%ignore snd_midi_event_reset_decode;
+%ignore snd_midi_event_no_status;
+%ignore snd_midi_event_encode;
+%ignore snd_midi_event_encode_byte;
+%ignore snd_midi_event_decode;
+
+
+
 %include "include/seq.h"
 %include "include/seqmid.h"
 %include "include/seq_event.h"

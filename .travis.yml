@@ -7,6 +7,7 @@ before_install:
     - lsb_release -a
     - sudo apt-get -qq update
     - sudo apt-get install build-essential python-dev swig2.0 libasound2-dev
+    - sudo update-alternatives --install /usr/bin/swig swig2.0 /usr/bin/swig2.0 50
     - swig -version
 install:
     - pip install coveralls

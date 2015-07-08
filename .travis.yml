@@ -8,11 +8,10 @@ before_install:
     - sudo apt-get -qq update
     - sudo apt-get install build-essential python-dev swig libasound2-dev
     - swig -version
-    - sudo usermod -a -G audio $USER
 install:
     - pip install coveralls
     - python setup.py install
 script:
-    - sudo -E su $USER -c 'source ~/virtualenv/python2.7/bin/activate; nosetests --with-coverage --cover-package=midi'
+    - nosetests --with-coverage --cover-package=midi
 after_success:
     - coveralls

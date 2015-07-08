@@ -7,6 +7,7 @@ before_install:
     - lsb_release -a
     - sudo apt-get -qq update
     - sudo apt-get install build-essential python-dev swig libasound2-dev
+    - sudo depmod -a
     - sudo modprobe snd_seq_midi
     - sudo chmod 666 /dev/snd/seq
     - swig -version

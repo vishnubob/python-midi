@@ -20,6 +20,7 @@ def stringify(name, obj, indent=0):
     return retstr
 
 class Sequencer(object):
+    SEQUENCER_TYPE = "alsa"
     __ARGUMENTS__ = {
         'alsa_sequencer_name':'__sequencer__',
         'alsa_sequencer_stream':S.SND_SEQ_OPEN_DUPLEX,

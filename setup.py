@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import os
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
+import setuptools.command.install
 
 __base__ = {
     'name':'midi', 
@@ -15,6 +16,13 @@ __base__ = {
     'ext_package':'',
     'scripts':['scripts/mididump.py', 'scripts/mididumphw.py', 'scripts/midiplay.py'],
 }
+
+# this kludge ensures we run the build_ext first before anything else
+# otherwise, we will be missing generated files during the copy
+class Install_Command_build_ext_first(setuptools.command.install.install):
+    def run(self):
+        self.run_command("build_ext")
+        return setuptools.command.install.install.run(self)
 
 def setup_alsa(ns):
     # scan for alsa include directory
@@ -44,6 +52,7 @@ def setup_alsa(ns):
     ns['py_modules'].append('midi.sequencer.sequencer')
     ns['py_modules'].append('midi.sequencer.sequencer_alsa')
     ns['ext_package'] = 'midi.sequencer'
+    ns['cmdclass'] = {'install': Install_Command_build_ext_first}
 
 def configure_platform():
     from sys import platform

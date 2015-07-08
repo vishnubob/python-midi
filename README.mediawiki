@@ -1,4 +1,5 @@
-<a href="https://travis-ci.org/vishnubob/python-midi"><img src="https://travis-ci.org/vishnubob/python-midi.svg?branch=master" /></a>
+<a href="https://travis-ci.org/vishnubob/python-midi"><img src="https://travis-ci.org/vishnubob/python-midi.svg?branch=master" alt='Build Statis' /></a>
+<a href='https://coveralls.io/github/vishnubob/python-midi?branch=master'><img src='https://coveralls.io/repos/vishnubob/python-midi/badge.svg?branch=master&service=github' alt='Coverage Status' /></a>
 
 =Python MIDI=
 

@@ -160,6 +160,23 @@ pattern = midi.read_midifile("example.mid")
 print pattern
 </pre>
 
+If you want to convert from midi ticks to milliseconds, you can use the TimeResolver
+wrapper class:
+
+<pre>
+import midi
+import midi.sequencer as sequencer
+pattern = midi.read_midifile("example.mid")
+pattern.make_ticks_abs()
+time_resolver = sequencer.TimeResolver(pattern)
+for track in pattern:
+    for event in track:
+        name = event.name
+        tick = event.tick
+        milliseconds = time_resolver.tick2ms(tick)
+        print ("event {0} with MIDI tick {1} happens after {2} milliseconds.".format(name, tick, milliseconds))
+</pre>
+
 ==Sequencer==
 
 If you use this toolkit under Linux, you can take advantage of ALSA's

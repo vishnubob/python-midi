@@ -1,6 +1,6 @@
 class TempoMap(list):
-    def __init__(self, stream):
-        self.stream = stream
+    def __init__(self, resolution):
+        self.resolution = resolution
 
     def add_and_update(self, event):
         self.add(event)
@@ -12,7 +12,7 @@ class TempoMap(list):
         # convert into milliseconds per beat
         tempo = tempo / 1000.0
         # generate ms per tick
-        event.mpt = tempo / self.stream.resolution
+        event.mpt = tempo / self.resolution
         self.append(event)
 
     def update(self):
@@ -26,12 +26,62 @@ class TempoMap(list):
             last = event
 
     def get_tempo(self, offset=0):
-        last = self[0]
-        for tm in self[1:]:
-            if tm.tick > offset:
-                return last
-            last = tm
-        return last
+        try:
+            last = self[0]
+            for tm in self[1:]:
+                if tm.tick > offset:
+                    return last
+                last = tm
+            return last
+        except IndexError:
+            # no tempo changes specified in midi track
+            last = SetTempoEvent()
+            last.bpm = 120
+            last.mpqn = 500
+            last.mpt = last.mpqn / self.resolution
+            self.append(last)
+            return last
+
+class TimeResolver(object):
+    """
+    iterates over a pattern and analyzes timing information
+    the result of the analysis can be used to convert from absolute midi tick to wall clock time (in milliseconds).
+    """
+    def __init__(self, pattern):
+        self.pattern = pattern
+        self.tempomap = TempoMap(self.pattern.resolution)
+        self.__resolve_timing()
+
+    def __resolve_timing(self):
+        """
+        go over all events and initialize a tempo map
+        """
+        # backup original mode and turn to absolute
+        original_ticks_relative = self.pattern.tick_relative
+        self.pattern.make_ticks_abs()
+        # create a tempo map
+        self.__init_tempomap()
+        # restore original mode
+        if (original_ticks_relative):
+            self.pattern.make_ticks_rel()
+
+    def __init_tempomap(self):
+        """
+        initialize the tempo map which tracks tempo changes through time 
+        """
+        for track in self.pattern:
+            for event in track:
+                if event.name == "Set Tempo":
+                    self.tempomap.add(event)
+        self.tempomap.update()
+
+    def tick2ms(self, absolute_tick):
+        """
+        convert absolute midi tick to wall clock time (milliseconds)
+        """
+        ev = self.tempomap.get_tempo(absolute_tick)
+        ms = ev.msdelay + ((absolute_tick - ev.tick)*ev.mpt)
+        return ms
 
 class EventStreamIterator(object):
     def __init__(self, stream, window):

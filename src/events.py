@@ -111,20 +111,21 @@ and NoteOff events.
 """
 
 class NoteEvent(Event):
-    __slots__ = ['pitch', 'velocity']
     length = 2
 
-    def get_pitch(self):
+    @property
+    def pitch(self):
         return self.data[0]
-    def set_pitch(self, val):
+    @pitch.setter
+    def pitch(self, val):
         self.data[0] = val
-    pitch = property(get_pitch, set_pitch)
 
-    def get_velocity(self):
+    @property
+    def velocity(self):
         return self.data[1]
-    def set_velocity(self, val):
+    @velocity.setter
+    def velocity(self, val):
         self.data[1] = val
-    velocity = property(get_velocity, set_velocity)
 
 class NoteOnEvent(NoteEvent):
     statusmsg = 0x90
@@ -139,73 +140,77 @@ class AfterTouchEvent(Event):
     length = 2
     name = 'After Touch'
     
-    def get_pitch(self):
+    @property
+    def pitch(self):
         return self.data[0]
-    def set_pitch(self, val):
+    @pitch.setter
+    def pitch(self, val):
         self.data[0] = val
-    pitch = property(get_pitch, set_pitch)
     
-    def get_value(self):
+    @property
+    def value(self):
         return self.data[1]
-    def set_value(self, val):
+    @value.setter
+    def value(self, val):
         self.data[1] = val
-    value = property(get_value, set_value)
+
 
 class ControlChangeEvent(Event):
-    __slots__ = ['control', 'value']
     statusmsg = 0xB0
     length = 2
     name = 'Control Change'
 
-    def set_control(self, val):
+    @property
+    def control(self, val):
         self.data[0] = val
-    def get_control(self):
+    @control.setter
+    def control(self):
         return self.data[0]
-    control = property(get_control, set_control)
 
-    def set_value(self, val):
+    @property
+    def value(self, val):
         self.data[1] = val
-    def get_value(self):
+    @value.setter
+    def value(self):
         return self.data[1]
-    value = property(get_value, set_value)
 
 class ProgramChangeEvent(Event):
-    __slots__ = ['value']
     statusmsg = 0xC0
     length = 1
     name = 'Program Change'
 
-    def set_value(self, val):
+    @property
+    def value(self, val):
         self.data[0] = val
-    def get_value(self):
+    @value.setter
+    def value(self):
         return self.data[0]
-    value = property(get_value, set_value)
 
 class ChannelAfterTouchEvent(Event):
-    __slots__ = ['value']
     statusmsg = 0xD0
     length = 1
     name = 'Channel After Touch'
 
-    def set_value(self, val):
+    @property
+    def value(self, val):
         self.data[1] = val
-    def get_value(self):
+    @value.setter
+    def value(self):
         return self.data[1]
-    value = property(get_value, set_value)
 
 class PitchWheelEvent(Event):
-    __slots__ = ['pitch']
     statusmsg = 0xE0
     length = 2
     name = 'Pitch Wheel'
 
-    def get_pitch(self):
+    @property
+    def pitch(self):
         return ((self.data[1] << 7) | self.data[0]) - 0x2000
-    def set_pitch(self, pitch):
+    @pitch.setter
+    def pitch(self, pitch):
         value = pitch + 0x2000
         self.data[0] = value & 0x7F
         self.data[1] = (value >> 7) & 0x7F
-    pitch = property(get_pitch, set_pitch)
 
 class SysexEvent(Event):
     statusmsg = 0xF0
@@ -302,77 +307,82 @@ class EndOfTrackEvent(MetaEvent):
     metacommand = 0x2F
 
 class SetTempoEvent(MetaEvent):
-    __slots__ = ['bpm', 'mpqn']
     name = 'Set Tempo'
     metacommand = 0x51
     length = 3
 
-    def set_bpm(self, bpm):
+    @property
+    def bpm(self, bpm):
         self.mpqn = int(float(6e7) / bpm)
-    def get_bpm(self):
+    @bpm.setter
+    def bpm(self):
         return float(6e7) / self.mpqn
-    bpm = property(get_bpm, set_bpm)
 
-    def get_mpqn(self):
+    @property
+    def mpqn(self):
         assert(len(self.data) == 3)
         vals = [self.data[x] << (16 - (8 * x)) for x in xrange(3)]
         return sum(vals)
-    def set_mpqn(self, val):
+    @mpqn.setter
+    def mpqn(self, val):
         self.data = [(val >> (16 - (8 * x)) & 0xFF) for x in range(3)]
-    mpqn = property(get_mpqn, set_mpqn)
 
 class SmpteOffsetEvent(MetaEvent):
     name = 'SMPTE Offset'
     metacommand = 0x54
 
 class TimeSignatureEvent(MetaEvent):
-    __slots__ = ['numerator', 'denominator', 'metronome', 'thirtyseconds']
     name = 'Time Signature'
     metacommand = 0x58
     length = 4
 
-    def get_numerator(self):
+    @property
+    def numerator(self):
         return self.data[0]
-    def set_numerator(self, val):
+    @numerator.setter
+    def numerator(self, val):
         self.data[0] = val
-    numerator = property(get_numerator, set_numerator)
 
-    def get_denominator(self):
+    @property
+    def denominator(self):
         return 2 ** self.data[1]
-    def set_denominator(self, val):
+    @denominator.setter
+    def denominator(self, val):
         self.data[1] = int(math.log(val, 2))
-    denominator = property(get_denominator, set_denominator)
 
-    def get_metronome(self):
+    @property
+    def metronome(self):
         return self.data[2]
-    def set_metronome(self, val):
+    @metronome.setter
+    def metronome(self, val):
         self.data[2] = val
-    metronome = property(get_metronome, set_metronome)
 
-    def get_thirtyseconds(self):
+    @property
+    def thirtyseconds(self):
         return self.data[3]
-    def set_thirtyseconds(self, val):
+    @thirtyseconds.setter
+    def thirtyseconds(self, val):
         self.data[3] = val
-    thirtyseconds = property(get_thirtyseconds, set_thirtyseconds)
 
 class KeySignatureEvent(MetaEvent):
-    __slots__ = ['alternatives', 'minor']
     name = 'Key Signature'
     metacommand = 0x59
     length = 2
 
-    def get_alternatives(self):
+    @property
+    def alternatives(self):
         d = self.data[0]
         return d - 256 if d > 127 else d
-    def set_alternatives(self, val):
+    @alternatives.setter
+    def alternatives(self, val):
         self.data[0] = 256 + val if val < 0 else val
-    alternatives = property(get_alternatives, set_alternatives)
 
-    def get_minor(self):
+    @property
+    def minor(self):
         return self.data[1]
+    @minor.setter
     def set_minor(self, val):
         self.data[1] = val
-    minor = property(get_minor, set_minor)
 
 class SequencerSpecificEvent(MetaEvent):
     name = 'Sequencer Specific'

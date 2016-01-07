@@ -231,6 +231,8 @@ class MetaEventWithText(MetaEvent):
         super(MetaEventWithText, self).__init__(**kw)
         if 'text' not in kw:
             self.text = ''.join(chr(datum) for datum in self.data)
+        else:
+            self.data = [ord(datum) for datum in self.text]
     
     def __repr__(self):
         return self.__baserepr__(['text'])

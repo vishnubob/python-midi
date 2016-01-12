@@ -46,6 +46,13 @@ class AbstractEvent(object):
         elif self.tick > other.tick: return 1
         return cmp(self.data, other.data)
 
+    def __hash__(self):
+        h = 0
+        for i, datum in enumerate(self.data):
+            h += datum << i*8
+        h += (self.tick << len(self.data)*8)
+        return h
+
     def __baserepr__(self, keys=[]):
         keys = ['tick'] + keys + ['data']
         body = []

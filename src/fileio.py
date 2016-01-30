@@ -132,11 +132,13 @@ class FileWriter(object):
             ret += chr(event.statusmsg) + chr(event.metacommand)
             ret += write_varlen(len(event.data))
             ret += str.join('', map(chr, event.data))
+            self.RunningStatus = None
         # is this event a Sysex Event?
         elif isinstance(event, SysexEvent):
             ret += chr(0xF0)
             ret += str.join('', map(chr, event.data))
             ret += chr(0xF7)
+            self.RunningStatus = None
         # not a Meta MIDI event or a Sysex event, must be a general message
         elif isinstance(event, Event):
             if not self.RunningStatus or \

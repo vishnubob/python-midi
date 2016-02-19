@@ -166,32 +166,37 @@ class ControlChangeEvent(Event):
     statusmsg = 0xB0
     length = 2
     name = 'Control Change'
-
+    
     @property
-    def control(self, val):
-        self.data[0] = val
-    @control.setter
     def control(self):
         return self.data[0]
-
+    
+    @control.setter
+    def control(self, val):
+        self.data[0] = val
+    
     @property
-    def value(self, val):
-        self.data[1] = val
-    @value.setter
     def value(self):
         return self.data[1]
+
+    @value.setter
+    def value(self, val):
+        self.data[1] = val
+    
 
 class ProgramChangeEvent(Event):
     statusmsg = 0xC0
     length = 1
     name = 'Program Change'
-
+    
     @property
-    def value(self, val):
-        self.data[0] = val
-    @value.setter
     def value(self):
         return self.data[0]
+    
+    @value.setter
+    def value(self, val):
+        self.data[0] = val
+    
 
 class ChannelAfterTouchEvent(Event):
     statusmsg = 0xD0
@@ -199,11 +204,13 @@ class ChannelAfterTouchEvent(Event):
     name = 'Channel After Touch'
 
     @property
-    def value(self, val):
-        self.data[1] = val
-    @value.setter
     def value(self):
         return self.data[1]
+
+    @value.setter
+    def value(self, val):
+        self.data[1] = val
+    
 
 class PitchWheelEvent(Event):
     statusmsg = 0xE0

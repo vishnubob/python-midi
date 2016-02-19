@@ -321,11 +321,11 @@ class SetTempoEvent(MetaEvent):
     length = 3
 
     @property
-    def bpm(self, bpm):
-        self.mpqn = int(float(6e7) / bpm)
-    @bpm.setter
     def bpm(self):
         return float(6e7) / self.mpqn
+    @bpm.setter
+    def bpm(self, bpm):
+        self.mpqn = int(float(6e7) / bpm)
 
     @property
     def mpqn(self):

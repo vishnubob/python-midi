@@ -67,7 +67,7 @@ track.append(off)
 eot = midi.EndOfTrackEvent(tick=1)
 track.append(eot)
 # Print out the pattern
-print pattern
+print(pattern)
 # Save the pattern to disk
 midi.write_midifile("example.mid", pattern)
 </pre>
@@ -155,7 +155,7 @@ It's just as easy to load your MIDI file from disk.
 <pre>
 import midi
 pattern = midi.read_midifile("example.mid")
-print pattern
+print(pattern)
 </pre>
 
 ==Sequencer==

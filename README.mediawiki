@@ -28,6 +28,7 @@ feature set to offer.
 * A reader and writer, so you can read and write your MIDI tracks to disk.
 
 ==Installation==
+First, make sure you have swig installed (www.swig.org)
 
 Follow the [http://docs.python.org/2/install/index.html normal procedure for Python module installation]:
 
@@ -110,7 +111,7 @@ think about things in terms of milliseconds, or ticks, if you care about the bea
 A tick represents the lowest level resolution of a MIDI track.  Tempo is always
 analogous with Beats per Minute (BPM) which is the same thing as Quarter notes
 per Minute (QPM).  The Resolution is also known as the Pulses per Quarter note
-(PPQ).  It analogous to Ticks per Beat (TPM).
+(PPQ).  It analogous to Ticks per Beat (TPB).
 
 Tempo is set by two things.  First, a saved MIDI file encodes an initial
 Resolution and Tempo.  You use these values to initialize the sequencer timer.

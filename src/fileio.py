@@ -1,10 +1,11 @@
 from warnings import *
 
-from containers import *
-from events import *
 from struct import unpack, pack
-from constants import *
-from util import *
+
+from .containers import *
+from .events import *
+from .constants import *
+from .util import *
 
 class FileReader(object):
     def read(self, midifile):

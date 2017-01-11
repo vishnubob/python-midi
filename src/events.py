@@ -1,4 +1,5 @@
 import math
+from future.utils import with_metaclass
 
 class EventRegistry(object):
     Events = {}
@@ -19,17 +20,18 @@ class EventRegistry(object):
     register_event = classmethod(register_event)
 
 
-class AbstractEvent(object):
+class RegisterEventMeta(type):
+    def __init__(cls, name, bases, dict):
+        if name not in ['AbstractEvent', 'Event', 'MetaEvent', 'NoteEvent',
+                        'MetaEventWithText']:
+            EventRegistry.register_event(cls, bases)
+
+class AbstractEvent(with_metaclass(RegisterEventMeta,object)):
     __slots__ = ['tick', 'data']
     name = "Generic MIDI Event"
     length = 0
     statusmsg = 0x0
 
-    class __metaclass__(type):
-        def __init__(cls, name, bases, dict):
-            if name not in ['AbstractEvent', 'Event', 'MetaEvent', 'NoteEvent',
-                            'MetaEventWithText']:
-                EventRegistry.register_event(cls, bases)
 
     def __init__(self, **kw):
         if type(self.length) == int:

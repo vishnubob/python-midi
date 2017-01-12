@@ -16,7 +16,7 @@ class EventRegistry(object):
                                 "Event %s already registered" % event.name
                 cls.MetaEvents[event.metacommand] = event
         else:
-            raise ValueError, "Unknown bases class in event type: "+event.name
+            raise ValueError("Unknown bases class in event type: ", event.name)
     register_event = classmethod(register_event)
 
 

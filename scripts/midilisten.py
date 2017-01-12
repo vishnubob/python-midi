@@ -2,13 +2,15 @@
 """
 Attach to a MIDI device and print events to standard output.
 """
+from __future__ import print_function
+
 import sys
 import time
 import midi
 import midi.sequencer as sequencer
 
 if len(sys.argv) != 3:
-    print "Usage: {0} <client> <port>".format(sys.argv[0])
+    print("Usage: {0} <client> <port>".format(sys.argv[0]))
     exit(2)
 
 client = sys.argv[1]
@@ -21,4 +23,4 @@ seq.start_sequencer()
 while True:
   event = seq.event_read()
   if event is not None:
-      print event
+      print(event)

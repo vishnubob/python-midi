@@ -112,10 +112,10 @@ class FileWriter(object):
                             pattern.format, 
                             len(pattern),
                             pattern.resolution)
-        midifile.write('MThd%s' % packdata)
+        midifile.write(b'MThd' + packdata)
             
     def write_track(self, midifile, track):
-        buf = ''
+        buf = b''
         self.RunningStatus = None
         for event in track:
             buf += self.encode_midi_event(event)
@@ -123,41 +123,41 @@ class FileWriter(object):
         midifile.write(buf)
 
     def encode_track_header(self, trklen):
-        return b'MTrk%s' % pack(">L", trklen)
+        return b'MTrk' + pack(">L", trklen)
 
     def encode_midi_event(self, event):
-        ret = ''
+        ret = bytearray()
         ret += write_varlen(event.tick)
         # is the event a MetaEvent?
         if isinstance(event, MetaEvent):
-            ret += chr(event.statusmsg) + chr(event.metacommand)
+            ret += bytearray(event.statusmsg + event.metacommand)
             ret += write_varlen(len(event.data))
-            ret += str.join('', map(chr, event.data))
+            ret += bytearray(event.data)
         # is this event a Sysex Event?
         elif isinstance(event, SysexEvent):
-            ret += chr(0xF0)
-            ret += str.join('', map(chr, event.data))
-            ret += chr(0xF7)
+            ret.append(0xF0)
+            ret += bytearray(event.data)
+            ret.append(0xF7)
         # not a Meta MIDI event or a Sysex event, must be a general message
         elif isinstance(event, Event):
             if not self.RunningStatus or \
                 self.RunningStatus.statusmsg != event.statusmsg or \
                 self.RunningStatus.channel != event.channel:
                     self.RunningStatus = event
-                    ret += chr(event.statusmsg | event.channel)
-            ret += str.join('', map(chr, event.data))
+                    ret.append(event.statusmsg | event.channel)
+            ret += bytearray(event.data)
         else:
             raise ValueError("Unknown MIDI Event: " + str(event))
         return ret
 
 def write_midifile(midifile, pattern):
-    if type(midifile) in (str, unicode):
+    if not hasattr(midifile, "write"):
         midifile = open(midifile, 'wb')
     writer = FileWriter()
     return writer.write(midifile, pattern)
 
 def read_midifile(midifile):
-    if type(midifile) in (str, unicode):
+    if not hasattr(midifile, "read"):
         midifile = open(midifile, 'rb')
     reader = FileReader()
     return reader.read(midifile)

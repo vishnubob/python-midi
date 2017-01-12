@@ -25,7 +25,7 @@ class Pattern(list):
         if isinstance(item, slice):
             indices = item.indices(len(self))
             return Pattern(resolution=self.resolution, format=self.format,
-                            tracks=(super(Pattern, self).__getitem__(i) for i in xrange(*indices)))
+                            tracks=(super(Pattern, self).__getitem__(i) for i in range(*indices)))
         else:
             return super(Pattern, self).__getitem__(item)
 
@@ -58,7 +58,7 @@ class Track(list):
     def __getitem__(self, item):
         if isinstance(item, slice):
             indices = item.indices(len(self))
-            return Track((super(Track, self).__getitem__(i) for i in xrange(*indices)))
+            return Track((super(Track, self).__getitem__(i) for i in range(*indices)))
         else:
             return super(Track, self).__getitem__(item)
 

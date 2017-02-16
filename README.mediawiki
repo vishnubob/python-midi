@@ -35,6 +35,12 @@ Follow the [http://docs.python.org/2/install/index.html normal procedure for Pyt
 python setup.py install
 </pre>
 
+Or using [https://pip.pypa.io/en/latest/ pip]:
+
+<pre>
+pip install python-midi
+</pre>
+
 ===Examine a MIDI File===
 
 To examine the contents of a MIDI file run

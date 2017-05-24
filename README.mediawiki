@@ -35,6 +35,8 @@ Follow the [http://docs.python.org/2/install/index.html normal procedure for Pyt
 python setup.py install
 </pre>
 
+You will find the python3 version on this branche [https://github.com/vishnubob/python-midi/tree/feature/python3 feature/python3]
+
 ===Examine a MIDI File===
 
 To examine the contents of a MIDI file run

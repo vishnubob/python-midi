@@ -325,7 +325,7 @@ class SequencerHardware(Sequencer):
             self._ports[name] = port
 
         def __iter__(self):
-            return self._ports.itervalues()
+            return iter(self._ports.values())
 
         def __len__(self):
             return len(self._ports)
@@ -361,7 +361,7 @@ class SequencerHardware(Sequencer):
         self._query_clients()
 
     def __iter__(self):
-        return self._clients.itervalues()
+        return iter(self._clients.values())
 
     def __len__(self):
         return len(self._clients)

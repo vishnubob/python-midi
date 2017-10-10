@@ -17,7 +17,7 @@ def get_sequencer_type():
 class TestMIDI(unittest.TestCase):
     def test_varlen(self): 
         maxval = 0x0FFFFFFF
-        for inval in xrange(0, maxval, maxval / 1000):
+        for inval in range(0, maxval, maxval // 1000):
             datum = midi.write_varlen(inval)
             outval = midi.read_varlen(iter(datum))
             self.assertEqual(inval, outval, '0x%x -> %r -> 0x%x' % (

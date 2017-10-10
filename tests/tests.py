@@ -6,7 +6,7 @@ import os
 
 try:
     import midi.sequencer as sequencer
-except ImportError:
+except (ImportError, AttributeError):
     sequencer = None
 
 def get_sequencer_type():

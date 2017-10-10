@@ -40,7 +40,7 @@ event_input(snd_seq_t *handle)
     if (err == -EAGAIN)
     {
         Py_INCREF(Py_None);
-        return Py_None;
+        return (snd_seq_event_t*)Py_None;
     }
     if (err < 0)
     {
@@ -152,8 +152,19 @@ snd_seq_port_info_t *new_port_info();
 
 snd_seq_client_info_t *new_client_info();
 
-snd_seq_event_t *event_input(snd_seq_t *handle);
 PyObject *client_poll_descriptors(snd_seq_t *handle);
+
+%exception event_input {
+    $action
+    if (result == (snd_seq_event_t*)Py_None) {
+        return Py_None;
+    }
+    if (!result) {
+        SWIG_fail;
+    }
+}
+
+snd_seq_event_t *event_input(snd_seq_t *handle);
 
 %exception;
 

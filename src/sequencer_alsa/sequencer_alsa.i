@@ -37,6 +37,11 @@ event_input(snd_seq_t *handle)
     int err;
     snd_seq_event_t *ev;
     err = snd_seq_event_input(handle, &ev);
+    if (err == -EAGAIN)
+    {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
     if (err < 0)
     {
         PyErr_SetString(PyExc_IOError, snd_strerror(err));

@@ -1,6 +1,7 @@
+from __future__ import print_function
 import select
-import sequencer_alsa as S
 import midi
+from . import sequencer_alsa as S
 
 __SWIG_NS_SET__ = set(['__class__', '__del__', '__delattr__', '__dict__', '__doc__', '__getattr__', '__getattribute__', '__hash__', '__init__', '__module__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__str__', '__swig_getmethods__', '__swig_setmethods__', '__weakref__', 'this', 'thisown'])
 
@@ -72,17 +73,13 @@ class Sequencer(object):
     def _error(self, errcode):
         strerr = S.snd_strerror(errcode)
         msg = "ALSAError[%d]: %s" % (errcode, strerr)
-        raise RuntimeError, msg
+        raise RuntimeError(msg)
 
     def _init_handle(self):
-        ret = S.open_client(self.alsa_sequencer_name,
-                            self.alsa_sequencer_type,
-                            self.alsa_sequencer_stream,
-                            self.alsa_sequencer_mode)
-        if ret == None:
-            # XXX: global error
-            self._error(ret)
-        self.client = ret
+        self.client = S.open_client(self.alsa_sequencer_name,
+                                    self.alsa_sequencer_type,
+                                    self.alsa_sequencer_stream,
+                                    self.alsa_sequencer_mode)
         self.client_id = S.snd_seq_client_id(self.client)
         self.output_buffer_size = S.snd_seq_get_output_buffer_size(self.client)
         self.input_buffer_size = S.snd_seq_get_input_buffer_size(self.client)
@@ -204,7 +201,7 @@ class Sequencer(object):
     ## EVENT HANDLERS
     ##
     def event_write(self, event, direct=False, relative=False, tick=False):
-        #print event.__class__, event
+        #print(event.__class__, event)
         ## Event Filter
         if isinstance(event, midi.EndOfTrackEvent):
             return
@@ -269,7 +266,7 @@ class Sequencer(object):
             seqev.data.control.value = event.pitch
         ## Unknown
         else:
-            print "Warning :: Unknown event type: %s" % event
+            print("Warning :: Unknown event type: %s" % event)
             return None
             
         err = S.snd_seq_event_output(self.client, seqev)
@@ -279,7 +276,6 @@ class Sequencer(object):
 
     def event_read(self):
         ev = S.event_input(self.client)
-        if ev and (ev < 0): self._error(ev)
         if ev and ev.type in (S.SND_SEQ_EVENT_NOTEON, S.SND_SEQ_EVENT_NOTEOFF):
             if ev.type == S.SND_SEQ_EVENT_NOTEON:
                 mev = midi.NoteOnEvent()
@@ -324,7 +320,7 @@ class SequencerHardware(Sequencer):
             self._ports[name] = port
 
         def __iter__(self):
-            return self._ports.itervalues()
+            return iter(self._ports.values())
 
         def __len__(self):
             return len(self._ports)
@@ -360,7 +356,7 @@ class SequencerHardware(Sequencer):
         self._query_clients()
 
     def __iter__(self):
-        return self._clients.itervalues()
+        return iter(self._clients.values())
 
     def __len__(self):
         return len(self._clients)

@@ -1,4 +1,6 @@
 import math
+from functools import total_ordering
+
 
 class EventRegistry(object):
     Events = {}
@@ -42,6 +44,7 @@ def with_metaclass(meta, *bases):
     return type.__new__(metaclass, 'temporary_class', (), {})
 
 
+@total_ordering
 class AbstractEvent(with_metaclass(RegisterEventMeta,object)):
     __slots__ = ['tick', 'data']
     name = "Generic MIDI Event"
@@ -60,17 +63,10 @@ class AbstractEvent(with_metaclass(RegisterEventMeta,object)):
             setattr(self, key, kw[key])
 
     def __lt__(self, other):
-        if self.tick < other.tick:
-            return True
-        return self.data < other.data
+        return (self.tick, self.data) < (other.tick, other.data)
 
     def __eq__(self, other):
-        return (self.__class__ is other.__class__ and
-                self.tick == other.tick and
-                self.data == other.data)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+        return (self.tick, self.data) == (other.tick, other.data)
 
     def __baserepr__(self, keys=[]):
         keys = ['tick'] + keys + ['data']
@@ -86,6 +82,7 @@ class AbstractEvent(with_metaclass(RegisterEventMeta,object)):
         return self.__baserepr__()
 
 
+@total_ordering
 class Event(AbstractEvent):
     __slots__ = ['channel']
     name = 'Event'
@@ -102,13 +99,10 @@ class Event(AbstractEvent):
         return self.__class__(**_kw)
 
     def __lt__(self, other):
-        return (super(Event, self).__lt__(other) or
-                (super(Event, self).__eq__(other) and
-                 self.channel < other.channel))
+        return self.tick < other.tick
 
     def __eq__(self, other):
-        return super(Event, self).__eq__(other) and \
-            self.channel == other.channel
+        return self.tick == other.tick
 
     def __repr__(self):
         return self.__baserepr__(['channel'])

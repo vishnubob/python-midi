@@ -20,7 +20,8 @@ class TestMIDI(unittest.TestCase):
         for inval in xrange(0, maxval, maxval / 1000):
             datum = midi.write_varlen(inval)
             outval = midi.read_varlen(iter(datum))
-            self.assertEqual(inval, outval)
+            self.assertEqual(inval, outval, '0x%x -> %r -> 0x%x' % (
+                inval, datum, outval))
 
     def test_mary(self): 
         midi.write_midifile("mary.mid", mary_test.MARY_MIDI)

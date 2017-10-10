@@ -18,8 +18,10 @@ def read_varlen(data):
 
 def write_varlen(value):
     result = bytearray()
+    hi_bit = 0
     while value > 0x7F:
-        result.append((value & 0x7F) | 0x80)
+        result.append((value & 0x7F) | hi_bit)
         value >>= 7
-    result.append(value)
-    return result
+        hi_bit = 0x80
+    result.append(value | hi_bit)
+    return result[::-1]

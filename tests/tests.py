@@ -62,7 +62,7 @@ class TestSequencerALSA(unittest.TestCase):
         return seq
     
     @unittest.skipIf(get_sequencer_type() != "alsa", "ALSA Sequencer not found, skipping test")
-    @unittest.skipIf(not os.path.exists("/dev/snd/seq"), "/dev/snd/seq is not available, skipping test")
+    @unittest.skipIf(not os.access("/dev/snd/seq", os.R_OK | os.W_OK), "/dev/snd/seq is not available, skipping test")
     def test_loopback_sequencer(self):
         rseq = self.get_reader_sequencer()
         wseq = self.get_writer_sequencer()

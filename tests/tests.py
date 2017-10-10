@@ -10,7 +10,7 @@ except (ImportError, AttributeError):
     sequencer = None
 
 def get_sequencer_type():
-    if sequencer == None:
+    if not hasattr(sequencer, 'Sequencer'):
         return None
     return sequencer.Sequencer.SEQUENCER_TYPE
 

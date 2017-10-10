@@ -78,6 +78,7 @@ new_queue_status(snd_seq_t *handle, int queue)
     int err;
     err = snd_seq_queue_status_malloc(&qstatus);
     if (err < 0){
+        PyErr_SetString(PyExc_IOError, snd_strerror(err));
         return NULL;
     }
     return qstatus;
@@ -96,6 +97,7 @@ new_client_info(void)
     int err;
     err = snd_seq_client_info_malloc(&cinfo);
     if (err < 0){
+        PyErr_SetString(PyExc_IOError, snd_strerror(err));
         return NULL;
     }
     return cinfo;
@@ -108,6 +110,7 @@ new_port_info(void)
     int err;
     err = snd_seq_port_info_malloc(&pinfo);
     if (err < 0){
+        PyErr_SetString(PyExc_IOError, snd_strerror(err));
         return NULL;
     }
     return pinfo;
@@ -120,39 +123,38 @@ new_port_subscribe(void)
     int err;
     err = snd_seq_port_subscribe_malloc(&subs);
     if (err < 0){
+        PyErr_SetString(PyExc_IOError, snd_strerror(err));
         return NULL;
     }
     return subs;
 }
 %}
 
-%exception open_client {
+%exception {
     $action
     if (!result) {
         SWIG_fail;
     }
 }
+
 snd_seq_t *open_client(const char *name, const char *type, int stream, int mode);
 
 snd_seq_port_subscribe_t *new_port_subscribe();
 
 snd_seq_queue_status_t *new_queue_status(snd_seq_t *handle, int queue);
-void free_queue_status(snd_seq_queue_status_t *qstatus);
 
 snd_seq_port_info_t *new_port_info();
 
 snd_seq_client_info_t *new_client_info();
 
-%exception event_input {
-    $action
-    if (!result) {
-        SWIG_fail;
-    }
-}
 snd_seq_event_t *event_input(snd_seq_t *handle);
+PyObject *client_poll_descriptors(snd_seq_t *handle);
+
+%exception;
+
+void free_queue_status(snd_seq_queue_status_t *qstatus);
 int snd_seq_control_queue_eventless(snd_seq_t *handle, int queue, int type, int value);
 int init_queue_tempo(snd_seq_t *handle, int queue, int bpm, int ppq);
-PyObject *client_poll_descriptors(snd_seq_t *handle);
 
 %typemap(out) ssize_t { $result = PyInt_FromLong($1); }
 %typemap(in) ssize_t { $1 = PyInt_AsLong($input); }

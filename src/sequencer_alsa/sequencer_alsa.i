@@ -14,7 +14,7 @@ open_client(const char *name, const char *type, int stream, int mode)
     err = snd_seq_open(&handle, type, stream, mode);
     if (err < 0)
     {
-            /* XXX: set global error */
+            PyErr_SetString(PyExc_IOError, snd_strerror(err));
             return NULL;
     }
     snd_seq_set_client_name(handle, name);
@@ -39,8 +39,7 @@ event_input(snd_seq_t *handle)
     err = snd_seq_event_input(handle, &ev);
     if (err < 0)
     {
-        /* XXX: does SWIG prevent us from raising an exception? */
-        /* PyErr_SetString(PyExc_IOError, snd_strerror(err)); */
+        PyErr_SetString(PyExc_IOError, snd_strerror(err));
         return NULL;
     }
     return ev;
@@ -127,6 +126,12 @@ new_port_subscribe(void)
 }
 %}
 
+%exception open_client {
+    $action
+    if (!result) {
+        SWIG_fail;
+    }
+}
 snd_seq_t *open_client(const char *name, const char *type, int stream, int mode);
 
 snd_seq_port_subscribe_t *new_port_subscribe();
@@ -138,6 +143,12 @@ snd_seq_port_info_t *new_port_info();
 
 snd_seq_client_info_t *new_client_info();
 
+%exception event_input {
+    $action
+    if (!result) {
+        SWIG_fail;
+    }
+}
 snd_seq_event_t *event_input(snd_seq_t *handle);
 int snd_seq_control_queue_eventless(snd_seq_t *handle, int queue, int type, int value);
 int init_queue_tempo(snd_seq_t *handle, int queue, int bpm, int ppq);

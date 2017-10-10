@@ -76,14 +76,10 @@ class Sequencer(object):
         raise RuntimeError(msg)
 
     def _init_handle(self):
-        ret = S.open_client(self.alsa_sequencer_name,
-                            self.alsa_sequencer_type,
-                            self.alsa_sequencer_stream,
-                            self.alsa_sequencer_mode)
-        if ret == None:
-            # XXX: global error
-            self._error(ret)
-        self.client = ret
+        self.client = S.open_client(self.alsa_sequencer_name,
+                                    self.alsa_sequencer_type,
+                                    self.alsa_sequencer_stream,
+                                    self.alsa_sequencer_mode)
         self.client_id = S.snd_seq_client_id(self.client)
         self.output_buffer_size = S.snd_seq_get_output_buffer_size(self.client)
         self.input_buffer_size = S.snd_seq_get_input_buffer_size(self.client)
@@ -280,7 +276,6 @@ class Sequencer(object):
 
     def event_read(self):
         ev = S.event_input(self.client)
-        if ev and (ev < 0): self._error(ev)
         if ev and ev.type in (S.SND_SEQ_EVENT_NOTEON, S.SND_SEQ_EVENT_NOTEOFF):
             if ev.type == S.SND_SEQ_EVENT_NOTEON:
                 mev = midi.NoteOnEvent()

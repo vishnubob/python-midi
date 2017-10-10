@@ -73,7 +73,7 @@ class Sequencer(object):
     def _error(self, errcode):
         strerr = S.snd_strerror(errcode)
         msg = "ALSAError[%d]: %s" % (errcode, strerr)
-        raise RuntimeError, msg
+        raise RuntimeError(msg)
 
     def _init_handle(self):
         ret = S.open_client(self.alsa_sequencer_name,

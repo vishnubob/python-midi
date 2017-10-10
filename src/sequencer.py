@@ -96,3 +96,4 @@ class EventStreamIterator(object):
             ret.append(event)
         return ret
 
+    next = __next__

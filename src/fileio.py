@@ -130,7 +130,7 @@ class FileWriter(object):
         ret += write_varlen(event.tick)
         # is the event a MetaEvent?
         if isinstance(event, MetaEvent):
-            ret += bytearray(event.statusmsg + event.metacommand)
+            ret += bytearray([event.statusmsg, event.metacommand])
             ret += write_varlen(len(event.data))
             ret += bytearray(event.data)
         # is this event a Sysex Event?

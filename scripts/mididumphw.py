@@ -2,8 +2,9 @@
 """
 Print a description of the available devices.
 """
+from __future__ import print_function
 import midi.sequencer as sequencer
 
 s = sequencer.SequencerHardware()
 
-print s
+print(s)

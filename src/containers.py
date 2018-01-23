@@ -1,5 +1,11 @@
 from pprint import pformat, pprint
 
+try:
+    xrange          # Python 2
+except NameError:
+    xrange = range  # Python 3
+
+
 class Pattern(list):
     def __init__(self, tracks=[], resolution=220, format=1, tick_relative=True):
         self.format = format

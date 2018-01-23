@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import os
 from setuptools import setup, Extension
 import setuptools.command.install
@@ -60,12 +61,10 @@ def configure_platform():
     # currently, only the ALSA sequencer is supported
     if platform.startswith('linux'):
         setup_alsa(ns)
-        pass
     else:
-        print "No sequencer available for '%s' platform." % platform
+        print("No sequencer available for '%s' platform." % platform)
     return ns
 
 if __name__ == "__main__":
     setup(**configure_platform())
-
 

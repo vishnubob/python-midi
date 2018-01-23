@@ -1,3 +1,4 @@
+from __future__ import print_function
 import select
 import sequencer_alsa as S
 import midi
@@ -72,7 +73,7 @@ class Sequencer(object):
     def _error(self, errcode):
         strerr = S.snd_strerror(errcode)
         msg = "ALSAError[%d]: %s" % (errcode, strerr)
-        raise RuntimeError, msg
+        raise RuntimeError(msg)
 
     def _init_handle(self):
         ret = S.open_client(self.alsa_sequencer_name,
@@ -90,8 +91,8 @@ class Sequencer(object):
 
     def _init_port(self):
         err = S.snd_seq_create_simple_port(self.client,
-                                            self.alsa_port_name, 
-                                            self.alsa_port_caps, 
+                                            self.alsa_port_name,
+                                            self.alsa_port_caps,
                                             self.alsa_port_type)
         if err < 0: self._error(err)
         self.port = err
@@ -126,13 +127,13 @@ class Sequencer(object):
         addr.client = int(client)
         addr.port = int(port)
         return addr
-    
+
     def _init_queue(self):
         err = S.snd_seq_alloc_named_queue(self.client, self.alsa_queue_name)
         if err < 0: self._error(err)
         self.queue = err
         adjtempo = int(60.0 * 1000000.0 / self.sequencer_tempo)
-        S.init_queue_tempo(self.client, self.queue, 
+        S.init_queue_tempo(self.client, self.queue,
                             adjtempo, self.sequencer_resolution)
 
     def _control_queue(self, ctype, cvalue, event=None):
@@ -180,7 +181,7 @@ class Sequencer(object):
         if self._queue_running:
             self._control_queue(S.SND_SEQ_EVENT_STOP, 0, event)
             self._queue_running = False
-    
+
     def drain(self):
         S.snd_seq_drain_output(self.client)
 
@@ -269,9 +270,9 @@ class Sequencer(object):
             seqev.data.control.value = event.pitch
         ## Unknown
         else:
-            print "Warning :: Unknown event type: %s" % event
+            print("Warning :: Unknown event type: %s" % event)
             return None
-            
+
         err = S.snd_seq_event_output(self.client, seqev)
         if (err < 0): self._error(err)
         self.drain()
@@ -332,7 +333,7 @@ class SequencerHardware(Sequencer):
         def get_port(self, key):
             return self._ports[key]
         __getitem__ = get_port
-        
+
         class Port(object):
             def __init__(self, port, name, caps):
                 self.port = port
@@ -451,4 +452,3 @@ class SequencerDuplex(Sequencer):
         dest = self._new_address(client, port)
         subscribe = self._new_subscribe(sender, dest, read=False)
         self._subscribe_port(subscribe)
-

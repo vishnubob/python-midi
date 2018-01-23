@@ -1,3 +1,4 @@
+from __future__ import print_function
 import midi
 # Instantiate a MIDI Pattern (contains a list of tracks)
 pattern = midi.Pattern()
@@ -15,6 +16,6 @@ track.append(off)
 eot = midi.EndOfTrackEvent(tick=1)
 track.append(eot)
 # Print out the pattern
-print pattern
+print(pattern)
 # Save the pattern to disk
 midi.write_midifile("example.mid", pattern)

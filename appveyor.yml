@@ -14,4 +14,4 @@ build_script:
 
 test_script:
   - mididump.py mary.mid
-  - nosetests --with-coverage --cover-package=midi
+  - midiplay.py 128 0 mary.mid

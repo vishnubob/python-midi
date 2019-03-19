@@ -44,7 +44,7 @@ class TestSequencerALSA(unittest.TestCase):
         hw = sequencer.SequencerHardware()
         ports = {port.name: port for port in hw}
         loop = ports.get("Midi Through", None)
-        assert loop != None, "Could not find Midi Through port!"
+        assert(loop != None), "Could not find Midi Through port!"
         loop_port = loop.get_port("Midi Through Port-0")
         return (loop.client, loop_port.port)
     

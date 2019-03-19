@@ -1,4 +1,4 @@
 try:
-    from sequencer import *
+    from .sequencer import *
 except ImportError:
     pass

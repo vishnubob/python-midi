@@ -8,7 +8,7 @@ import midi
 import midi.sequencer as sequencer
 
 if len(sys.argv) != 4:
-    print "Usage: {0} <client> <port> <file>".format(sys.argv[0])
+    print("Usage: {0} <client> <port> <file>".format(sys.argv[0]))
     exit(2)
 
 client   = sys.argv[1]
@@ -45,4 +45,4 @@ while event.tick > seq.queue_get_tick_time():
     seq.drain()
     time.sleep(.5)
 
-print 'The end?'
+print('The end?')

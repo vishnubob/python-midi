@@ -62,7 +62,7 @@ def configure_platform():
         setup_alsa(ns)
         pass
     else:
-        print "No sequencer available for '%s' platform." % platform
+        print("No sequencer available for '%s' platform." % platform)
     return ns
 
 if __name__ == "__main__":

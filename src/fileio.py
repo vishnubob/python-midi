@@ -150,13 +150,13 @@ class FileWriter(object):
         return ret
 
 def write_midifile(midifile, pattern):
-    if type(midifile) in (str, unicode):
+    if type(midifile) in str:
         midifile = open(midifile, 'wb')
     writer = FileWriter()
     return writer.write(midifile, pattern)
 
 def read_midifile(midifile):
-    if type(midifile) in (str, unicode):
+    if type(midifile) in str:
         midifile = open(midifile, 'rb')
     reader = FileReader()
     return reader.read(midifile)

@@ -151,12 +151,12 @@ class FileWriter(object):
 
 def write_midifile(midifile, pattern):
     if isinstance(midifile, str):
-        midifile = open(midifile, 'wb')
+        midifile = open(midifile, 'w')
     writer = FileWriter()
     return writer.write(midifile, pattern)
 
 def read_midifile(midifile):
     if isinstance(midifile, str):
-        midifile = open(midifile, 'rb')
+        midifile = open(midifile, 'r')
     reader = FileReader()
     return reader.read(midifile)

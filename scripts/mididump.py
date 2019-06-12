@@ -11,4 +11,4 @@ if len(sys.argv) != 2:
 
 midifile = sys.argv[1]
 pattern = midi.read_midifile(midifile)
-print repr(pattern)
+print(repr(pattern))

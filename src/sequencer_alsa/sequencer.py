@@ -1,3 +1,4 @@
+from __future__ import print_function
 import select
 import sequencer_alsa as S
 import midi
@@ -204,7 +205,7 @@ class Sequencer(object):
     ## EVENT HANDLERS
     ##
     def event_write(self, event, direct=False, relative=False, tick=False):
-        #print event.__class__, event
+        #print(event.__class__, event)
         ## Event Filter
         if isinstance(event, midi.EndOfTrackEvent):
             return
@@ -269,7 +270,7 @@ class Sequencer(object):
             seqev.data.control.value = event.pitch
         ## Unknown
         else:
-            print "Warning :: Unknown event type: %s" % event
+            print("Warning :: Unknown event type: %s" % event)
             return None
             
         err = S.snd_seq_event_output(self.client, seqev)

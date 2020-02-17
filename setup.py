@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import os
 from setuptools import setup, Extension
 import setuptools.command.install
@@ -15,12 +16,14 @@ __base__ = {
     'ext_modules':[],
     'ext_package':'',
     'scripts':['scripts/mididump.py', 'scripts/mididumphw.py', 'scripts/midiplay.py'],
+    'install_requires':['future'],
 }
 
 # this kludge ensures we run the build_ext first before anything else
 # otherwise, we will be missing generated files during the copy
 class Install_Command_build_ext_first(setuptools.command.install.install):
     def run(self):
+        setuptools.command.install.install.do_egg_install(self)
         self.run_command("build_ext")
         return setuptools.command.install.install.run(self)
 
@@ -62,7 +65,7 @@ def configure_platform():
         setup_alsa(ns)
         pass
     else:
-        print "No sequencer available for '%s' platform." % platform
+        print("No sequencer available for '%s' platform." % platform)
     return ns
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ from .events import Event
 class Track(list):
     def __init__(self, events: Optional[List[Event]] = None, tick_relative: bool = True):
         self.tick_relative = tick_relative
-        super(Track, self).__init__(events)
+        super(Track, self).__init__(events or [])
 
     def make_ticks_abs(self):
         if self.tick_relative:

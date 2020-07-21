@@ -1,17 +1,16 @@
 import unittest
-import midi
-import mary_test
+import src as midi
 import time
 import os
 
 try:
     import midi.sequencer as sequencer
-except ImportError:
+except (ImportError, AttributeError):
     sequencer = None
 
 
 def get_sequencer_type():
-    return sequencer.Sequencer.SEQUENCER_TYPE if sequencer else None
+    return sequencer.Sequencer.SEQUENCER_TYPE if hasattr(sequencer, "Sequencer") else None
 
 
 class TestMIDI(unittest.TestCase):
@@ -20,16 +19,38 @@ class TestMIDI(unittest.TestCase):
         for inval in range(0, maxval, maxval // 1000):
             datum = midi.write_varlen(inval)
             outval = midi.read_varlen(iter(datum))
-            self.assertEqual(inval, outval)
+            self.assertEqual(inval, outval, f"0x{inval:x} -> {datum} -> {outval:x}")
 
     def test_mary(self):
-        midi.write_midifile("mary.mid", mary_test.MARY_MIDI)
+        test_midi = midi.Pattern(tracks=[
+            midi.Track(events=[
+                midi.events.TimeSignatureEvent(tick=0, data=[4, 2, 24, 8]),
+                midi.events.KeySignatureEvent(tick=0, data=[0, 0]),
+                midi.events.EndOfTrackEvent(tick=1, data=[])
+            ]),
+            midi.Track(events=[
+                midi.events.ControlChangeEvent(tick=0, channel=0, data=[91, 58]),
+                midi.events.ControlChangeEvent(tick=0, channel=0, data=[32, 0]),
+                midi.events.ProgramChangeEvent(tick=0, channel=0, data=[24]),
+                midi.events.NoteOnEvent(tick=0, channel=0, data=[64, 72]),
+                midi.events.NoteOnEvent(tick=0, channel=0, data=[55, 70]),
+                midi.events.NoteOnEvent(tick=231, channel=0, data=[64, 0]),
+                midi.events.NoteOnEvent(tick=0, channel=0, data=[52, 0]),
+                midi.events.EndOfTrackEvent(tick=1, data=[])
+            ])
+        ])
+
+        midi.write_midifile("mary.mid", test_midi)
         pattern1 = midi.read_midifile("mary.mid")
+
         midi.write_midifile("mary.mid", pattern1)
         pattern2 = midi.read_midifile("mary.mid")
+
         self.assertEqual(len(pattern1), len(pattern2))
+
         for track_idx in range(len(pattern1)):
             self.assertEqual(len(pattern1[track_idx]), len(pattern2[track_idx]))
+
             for event_idx in range(len(pattern1[track_idx])):
                 event1 = pattern1[track_idx][event_idx]
                 event2 = pattern2[track_idx][event_idx]

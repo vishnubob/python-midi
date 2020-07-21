@@ -2,6 +2,5 @@ build
 *.pyc
 .coverage
 .*.sw?
-.tox/
 *.egg-info/
 _sequencer_alsa.so

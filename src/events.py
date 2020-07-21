@@ -40,7 +40,7 @@ class EventRegistry(object):
 
 
 class RegisterEventMeta(type):
-    def __init__(cls, name: str, bases):
+    def __init__(cls, name: str, bases, d):
         if name not in ['AbstractEvent', 'Event', 'MetaEvent', 'NoteEvent', 'MetaEventWithText']:
             EventRegistry.register_event(cls, bases)
 

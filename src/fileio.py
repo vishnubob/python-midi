@@ -132,7 +132,7 @@ class FileWriter(object):
         ret += write_varlen(event.tick)
         # is the event a MetaEvent?
         if isinstance(event, MetaEvent):
-            ret += bytearray(event.statusmsg + event.metacommand)
+            ret += bytearray([event.statusmsg, event.metacommand])
             ret += write_varlen(len(event.data))
             ret += bytearray(event.data)
         # is this event a Sysex Event?
@@ -153,15 +153,33 @@ class FileWriter(object):
         return ret
 
 
-def write_midifile(midi_file: Union[BinaryIO, str], pattern: Pattern):
+def write_midifile(midi_file: Union[BinaryIO, str], pattern: Pattern) -> None:
+    manually_open = False
+
     if not hasattr(midi_file, "write"):
+        manually_open = True
         midi_file = open(midi_file, 'wb')
-    writer = FileWriter()
-    return writer.write(midi_file, pattern)
+
+    try:
+        writer = FileWriter()
+        writer.write(midi_file, pattern)
+    finally:
+        if manually_open:
+            midi_file.close()
 
 
-def read_midifile(midi_file: Union[BinaryIO, str]):
+def read_midifile(midi_file: Union[BinaryIO, str]) -> Pattern:
+    manually_open = False
+
     if not hasattr(midi_file, "read"):
+        manually_open = True
         midi_file = open(midi_file, 'rb')
-    reader = FileReader()
-    return reader.read(midi_file)
+
+    try:
+        reader = FileReader()
+        data = reader.read(midi_file)
+    finally:
+        if manually_open:
+            midi_file.close()
+
+    return data

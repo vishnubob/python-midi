@@ -1,28 +1,31 @@
 #!/usr/bin/env python
 
 import os
-from setuptools import setup, Extension
+
 import setuptools.command.install
+from setuptools import setup, Extension
 
 __base__ = {
-    'name':'midi', 
-    'version':'v0.2.3',
-    'description':'Python MIDI API',
-    'author':'giles hall',
-    'author_email':'ghall@csh.rit.edu',
-    'package_dir':{'midi':'src'},
-    'py_modules':['midi.containers', 'midi.__init__', 'midi.events', 'midi.util', 'midi.fileio', 'midi.constants'],
-    'ext_modules':[],
-    'ext_package':'',
-    'scripts':['scripts/mididump.py', 'scripts/mididumphw.py', 'scripts/midiplay.py'],
+    'name': 'midi',
+    'version': 'v0.2.3',
+    'description': 'Python MIDI API',
+    'author': 'giles hall',
+    'author_email': 'ghall@csh.rit.edu',
+    'package_dir': {'midi': 'src'},
+    'py_modules': ['midi.containers', 'midi.__init__', 'midi.events', 'midi.util', 'midi.fileio', 'midi.constants'],
+    'ext_modules': [],
+    'ext_package': '',
+    'scripts': ['scripts/mididump.py', 'scripts/mididumphw.py', 'scripts/midiplay.py'],
 }
+
 
 # this kludge ensures we run the build_ext first before anything else
 # otherwise, we will be missing generated files during the copy
-class Install_Command_build_ext_first(setuptools.command.install.install):
+class InstallCommandBuildExtFirst(setuptools.command.install.install):
     def run(self):
         self.run_command("build_ext")
         return setuptools.command.install.install.run(self)
+
 
 def setup_alsa(ns):
     # scan for alsa include directory
@@ -42,7 +45,7 @@ def setup_alsa(ns):
     extns = {
         'libraries': ['asound'],
         'swig_opts': [include_arg],
-        #'extra_compile_args':['-DSWIGRUNTIME_DEBUG']
+        # 'extra_compile_args':['-DSWIGRUNTIME_DEBUG']
     }
     ext = Extension('_sequencer_alsa', srclist, **extns)
     ns['ext_modules'].append(ext)
@@ -52,7 +55,8 @@ def setup_alsa(ns):
     ns['py_modules'].append('midi.sequencer.sequencer')
     ns['py_modules'].append('midi.sequencer.sequencer_alsa')
     ns['ext_package'] = 'midi.sequencer'
-    ns['cmdclass'] = {'install': Install_Command_build_ext_first}
+    ns['cmdclass'] = {'install': InstallCommandBuildExtFirst}
+
 
 def configure_platform():
     from sys import platform
@@ -62,10 +66,9 @@ def configure_platform():
         setup_alsa(ns)
         pass
     else:
-        print "No sequencer available for '%s' platform." % platform
+        print(f"No sequencer available for '{platform}' platform.")
     return ns
+
 
 if __name__ == "__main__":
     setup(**configure_platform())
-
-

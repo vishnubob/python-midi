@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+#This is an amazing project
 import os
 from setuptools import setup, Extension
 import setuptools.command.install

@@ -15,6 +15,6 @@ track.append(off)
 eot = midi.EndOfTrackEvent(tick=1)
 track.append(eot)
 # Print out the pattern
-print pattern
+print(pattern)
 # Save the pattern to disk
 midi.write_midifile("example.mid", pattern)

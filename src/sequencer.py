@@ -60,7 +60,7 @@ class EventStreamIterator(object):
 
     def __next_edge(self):
         if self.endoftrack:
-            raise StopIteration
+            raise StopIteration("")
         lastedge = self.window_edge
         self.window_edge += int(self.window_length / self.tempo.mpt)
         if self.window_edge > self.ttp:

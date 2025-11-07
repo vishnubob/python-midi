@@ -1,0 +1,57 @@
+from zipfile import ZipFile
+from io import BytesIO
+from midiutil import MIDIFile
+
+# Создаем объект в памяти для ZIP
+zip_buffer = BytesIO()
+
+# Настройки MIDI
+tempo = 145
+tracks = ["Chords", "Lead", "Bass", "VocalChop", "Drums"]
+num_measures = [8, 16, 8, 16]  # структура тактов: интро, дроп1, бридж, дроп2
+
+# Создаем MIDI файл
+midi_buffer = BytesIO()
+midi = MIDIFile(len(tracks))  # 5 дорожек
+
+for i, track_name in enumerate(tracks):
+    midi.addTrackName(i, 0, track_name)
+    midi.addTempo(i, 0, tempo)
+
+# Простейшие ноты для примера
+for track_index, track_name in enumerate(tracks):
+    start = 0
+    for section_index, section_length in enumerate(num_measures):
+        for beat in range(section_length):
+            note = 60 + track_index * 2
+            duration = 1
+            volume = 100
+            midi.addNote(track_index, 0, note, start + beat, duration, volume)
+        start += section_length
+
+midi.writeFile(midi_buffer)
+midi_buffer.seek(0)
+
+# Создаем ZIP и добавляем MIDI и текстовое описание
+with ZipFile("FutureBass145BPM.zip", 'w') as zip_file:
+    zip_file.writestr("FutureBass145BPM.mid", midi_buffer.read())
+    structure_text = """Future Bass MIDI Project Structure
+Tempo: 145 BPM
+Key: A Major
+Structure (in measures): Intro 8 | Drop 1 16 | Bridge 8 | Drop 2 16
+
+Tracks:
+1. Chords - Supersaw-style chords, sidechained
+2. Lead - Melodic, emotional phrase
+3. Bass - Follows chord roots, sidechained
+4. VocalChop - MIDI pattern for vocal chops
+5. Drums - Rhythmic pattern (kick/snare/hat placeholders)
+
+Recommendations:
+- Apply sidechain compression to chords and bass
+- Use lush reverb and delay on lead and vocal chops
+- EQ drums and bass for clarity
+- Automate filter sweeps for transitions"""
+    zip_file.writestr("Structure.txt", structure_text)
+
+print("ZIP-файл FutureBass145BPM.zip создан!")

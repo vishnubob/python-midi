@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """
-Print a description of the available devices.
+Print available MIDI devices with source and destination endpoint refs.
+
+Use the source refs for recording (midirecord.py) and dest refs for
+playback (midiplay.py).
 """
 import midi.sequencer as sequencer
 

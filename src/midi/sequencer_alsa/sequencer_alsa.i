@@ -66,7 +66,7 @@ client_poll_descriptors(snd_seq_t *handle)
     ret = PyList_New(0);
     for (idx = 0; idx < npfd; idx++)
     {
-        PyList_Append(ret, PyInt_FromLong((long)(pfd[idx].fd)));
+        PyList_Append(ret, PyLong_FromLong((long)(pfd[idx].fd)));
     }
     free(pfd);
     return ret;
@@ -143,8 +143,8 @@ int snd_seq_control_queue_eventless(snd_seq_t *handle, int queue, int type, int 
 int init_queue_tempo(snd_seq_t *handle, int queue, int bpm, int ppq);
 PyObject *client_poll_descriptors(snd_seq_t *handle);
 
-%typemap(out) ssize_t { $result = PyInt_FromLong($1); }
-%typemap(in) ssize_t { $1 = PyInt_AsLong($input); }
+%typemap(out) ssize_t { $result = PyLong_FromLong($1); }
+%typemap(in) ssize_t { $1 = PyLong_AsLong($input); }
 
 #define __attribute__(x) 
 

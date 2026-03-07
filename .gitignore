@@ -2,3 +2,5 @@ build
 *.pyc
 .coverage
 .*.sw?
+*egg*
+__pycache__

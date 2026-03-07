@@ -1,10 +1,19 @@
+from __future__ import annotations
+
 import select
-import sequencer_alsa as S
+from . import sequencer_alsa as S
 import midi
 
-__SWIG_NS_SET__ = set(['__class__', '__del__', '__delattr__', '__dict__', '__doc__', '__getattr__', '__getattribute__', '__hash__', '__init__', '__module__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__str__', '__swig_getmethods__', '__swig_setmethods__', '__weakref__', 'this', 'thisown'])
+__SWIG_NS_SET__ = frozenset([
+    '__class__', '__del__', '__delattr__', '__dict__', '__doc__',
+    '__getattr__', '__getattribute__', '__hash__', '__init__',
+    '__module__', '__new__', '__reduce__', '__reduce_ex__', '__repr__',
+    '__setattr__', '__str__', '__swig_getmethods__', '__swig_setmethods__',
+    '__weakref__', 'this', 'thisown',
+])
 
-def stringify(name, obj, indent=0):
+
+def stringify(name: str, obj: object, indent: int = 0) -> str:
     retstr = ''
     datafields = False
     if getattr(obj, 'this', False):
@@ -19,23 +28,24 @@ def stringify(name, obj, indent=0):
         retstr += '%s%s: %s\n' % ('    ' * indent, name, obj)
     return retstr
 
-class Sequencer(object):
-    SEQUENCER_TYPE = "alsa"
-    __ARGUMENTS__ = {
-        'alsa_sequencer_name':'__sequencer__',
-        'alsa_sequencer_stream':S.SND_SEQ_OPEN_DUPLEX,
-        'alsa_sequencer_mode':S.SND_SEQ_NONBLOCK,
-        'alsa_sequencer_type':'default',
-        'alsa_port_name':'__port__',
-        'alsa_port_caps':S.SND_SEQ_PORT_CAP_READ,
-        'alsa_port_type':S.SND_SEQ_PORT_TYPE_MIDI_GENERIC,
-        'alsa_queue_name':'__queue__',
-        'sequencer_tempo':120,
-        'sequencer_resolution':1000,
-    }
-    DefaultArguments = {}
 
-    def __init__(self, **ns):
+class Sequencer:
+    SEQUENCER_TYPE = "alsa"
+    __ARGUMENTS__: dict[str, object] = {
+        'alsa_sequencer_name': '__sequencer__',
+        'alsa_sequencer_stream': S.SND_SEQ_OPEN_DUPLEX,
+        'alsa_sequencer_mode': S.SND_SEQ_NONBLOCK,
+        'alsa_sequencer_type': 'default',
+        'alsa_port_name': '__port__',
+        'alsa_port_caps': S.SND_SEQ_PORT_CAP_READ,
+        'alsa_port_type': S.SND_SEQ_PORT_TYPE_MIDI_GENERIC,
+        'alsa_queue_name': '__queue__',
+        'sequencer_tempo': 120,
+        'sequencer_resolution': 1000,
+    }
+    DefaultArguments: dict[str, object] = {}
+
+    def __init__(self, **ns: object) -> None:
         # seed with baseline arguments
         self.__dict__.update(self.__ARGUMENTS__)
         # update with default arguments from concrete class
@@ -44,43 +54,41 @@ class Sequencer(object):
         self.__dict__.update(ns)
         self.client = None
         self._queue_running = False
-        self._poll_descriptors = []
+        self._poll_descriptors: list[int] = []
         self.init()
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self.client:
             S.snd_seq_close(self.client)
 
-    def init(self):
+    def init(self) -> None:
         self._init_handle()
         self._init_port()
         self._init_queue()
 
-    def set_nonblock(self, nonblock=True):
-        if nonblock:
+    @property
+    def nonblock(self) -> bool:
+        return self.alsa_sequencer_mode == S.SND_SEQ_NONBLOCK
+
+    @nonblock.setter
+    def nonblock(self, value: bool) -> None:
+        if value:
             self.alsa_sequencer_mode = S.SND_SEQ_NONBLOCK
         else:
             self.alsa_sequencer_mode = 0
         S.snd_seq_nonblock(self.client, self.alsa_sequencer_mode)
 
-    def get_nonblock(self):
-        if self.alsa_sequencer_mode == S.SND_SEQ_NONBLOCK:
-            return True
-        else:
-            return False
-
-    def _error(self, errcode):
+    def _error(self, errcode: int) -> None:
         strerr = S.snd_strerror(errcode)
         msg = "ALSAError[%d]: %s" % (errcode, strerr)
         raise RuntimeError(msg)
 
-    def _init_handle(self):
+    def _init_handle(self) -> None:
         ret = S.open_client(self.alsa_sequencer_name,
                             self.alsa_sequencer_type,
                             self.alsa_sequencer_stream,
                             self.alsa_sequencer_mode)
-        if ret == None:
-            # XXX: global error
+        if ret is None:
             self._error(ret)
         self.client = ret
         self.client_id = S.snd_seq_client_id(self.client)
@@ -88,15 +96,16 @@ class Sequencer(object):
         self.input_buffer_size = S.snd_seq_get_input_buffer_size(self.client)
         self._set_poll_descriptors()
 
-    def _init_port(self):
+    def _init_port(self) -> None:
         err = S.snd_seq_create_simple_port(self.client,
-                                            self.alsa_port_name, 
-                                            self.alsa_port_caps, 
+                                            self.alsa_port_name,
+                                            self.alsa_port_caps,
                                             self.alsa_port_type)
-        if err < 0: self._error(err)
+        if err < 0:
+            self._error(err)
         self.port = err
 
-    def _new_subscribe(self, sender, dest, read=True):
+    def _new_subscribe(self, sender, dest, read: bool = True):
         subscribe = S.new_port_subscribe()
         if read:
             self.read_sender = sender
@@ -111,9 +120,10 @@ class Sequencer(object):
         S.snd_seq_port_subscribe_set_queue(subscribe, self.queue)
         return subscribe
 
-    def _subscribe_port(self, subscribe):
+    def _subscribe_port(self, subscribe) -> None:
         err = S.snd_seq_subscribe_port(self.client, subscribe)
-        if err < 0: self._error(err)
+        if err < 0:
+            self._error(err)
 
     def _my_address(self):
         addr = S.snd_seq_addr_t()
@@ -121,93 +131,95 @@ class Sequencer(object):
         addr.port = self.port
         return addr
 
-    def _new_address(self, client, port):
+    def _new_address(self, client: int, port: int):
         addr = S.snd_seq_addr_t()
         addr.client = int(client)
         addr.port = int(port)
         return addr
-    
-    def _init_queue(self):
+
+    def _init_queue(self) -> None:
         err = S.snd_seq_alloc_named_queue(self.client, self.alsa_queue_name)
-        if err < 0: self._error(err)
+        if err < 0:
+            self._error(err)
         self.queue = err
         adjtempo = int(60.0 * 1000000.0 / self.sequencer_tempo)
-        S.init_queue_tempo(self.client, self.queue, 
+        S.init_queue_tempo(self.client, self.queue,
                             adjtempo, self.sequencer_resolution)
 
-    def _control_queue(self, ctype, cvalue, event=None):
+    def _control_queue(self, ctype: int, cvalue: int, event=None) -> None:
         err = S.snd_seq_control_queue(self.client, self.queue, ctype, cvalue, event)
-        if err < 0: self._error(err)
+        if err < 0:
+            self._error(err)
         self.drain()
 
-    def _set_event_broadcast(self, event):
-        event.source.client = source.client
-        event.source.port = source.port
+    def _set_event_broadcast(self, event) -> None:
+        event.source.client = self.client_id
+        event.source.port = self.port
         event.dest.client = S.SND_SEQ_ADDRESS_SUBSCRIBERS
         event.dest.port = S.SND_SEQ_ADDRESS_UNKNOWN
 
-    def queue_get_tick_time(self):
+    def queue_get_tick_time(self) -> int:
         status = S.new_queue_status(self.client, self.queue)
         S.snd_seq_get_queue_status(self.client, self.queue, status)
         res = S.snd_seq_queue_status_get_tick_time(status)
         S.free_queue_status(status)
         return res
 
-    def queue_get_real_time(self):
+    def queue_get_real_time(self) -> tuple[int, int]:
         status = S.new_queue_status(self.client, self.queue)
         S.snd_seq_get_queue_status(self.client, self.queue, status)
         res = S.snd_seq_queue_status_get_real_time(status)
         S.free_queue_status(status)
         return (res.tv_sec, res.tv_nsec)
 
-    def change_tempo(self, tempo, event=None):
+    def change_tempo(self, tempo: int, event=None) -> bool:
         adjbpm = int(60.0 * 1000000.0 / tempo)
         self._control_queue(S.SND_SEQ_EVENT_TEMPO, adjbpm, event)
         self.sequencer_tempo = tempo
         return True
 
-    def start_sequencer(self, event=None):
+    def start_sequencer(self, event=None) -> None:
         if not self._queue_running:
             self._control_queue(S.SND_SEQ_EVENT_START, 0, event)
             self._queue_running = True
 
-    def continue_sequencer(self, event=None):
+    def continue_sequencer(self, event=None) -> None:
         if not self._queue_running:
             self._control_queue(S.SND_SEQ_EVENT_CONTINUE, 0, event)
             self._queue_running = True
 
-    def stop_sequencer(self, event=None):
+    def stop_sequencer(self, event=None) -> None:
         if self._queue_running:
             self._control_queue(S.SND_SEQ_EVENT_STOP, 0, event)
             self._queue_running = False
-    
-    def drain(self):
+
+    def drain(self) -> None:
         S.snd_seq_drain_output(self.client)
 
-    def queue_eventlen(self):
+    def queue_eventlen(self) -> None:
         status = S.new_queue_status(self.client, self.queue)
         S.snd_seq_queue_status_get_events(status)
 
-    def _set_poll_descriptors(self):
+    def _set_poll_descriptors(self) -> None:
         self._poll_descriptors = S.client_poll_descriptors(self.client)
 
-    def configure_poll(self, poll):
+    def configure_poll(self, poll) -> None:
         for fd in self._poll_descriptors:
             poll.register(fd, select.POLLIN)
 
-    def drop_output(self):
+    def drop_output(self) -> None:
         S.snd_seq_drop_output_buffer(self.client)
 
-    def output_pending(self):
+    def output_pending(self) -> int:
         return S.snd_seq_event_output_pending(self.client)
 
     ## EVENT HANDLERS
     ##
-    def event_write(self, event, direct=False, relative=False, tick=False):
-        #print(event.__class__, event)
+    def event_write(self, event: midi.Event, direct: bool = False,
+                    relative: bool = False, tick: bool = False) -> int | None:
         ## Event Filter
         if isinstance(event, midi.EndOfTrackEvent):
-            return
+            return None
         seqev = S.snd_seq_event_t()
         ## common
         seqev.dest.client = self.write_dest.client
@@ -219,7 +231,7 @@ class Sequencer(object):
             seqev.queue = S.SND_SEQ_QUEUE_DIRECT
         else:
             seqev.queue = self.queue
-            seqev.flags &= (S.SND_SEQ_TIME_STAMP_MASK|S.SND_SEQ_TIME_MODE_MASK)
+            seqev.flags &= (S.SND_SEQ_TIME_STAMP_MASK | S.SND_SEQ_TIME_MODE_MASK)
             if relative:
                 seqev.flags |= S.SND_SEQ_TIME_MODE_REL
             else:
@@ -262,7 +274,7 @@ class Sequencer(object):
             seqev.type = S.SND_SEQ_EVENT_PGMCHANGE
             seqev.data.control.channel = event.channel
             seqev.data.control.value = event.value
-        ## Pitch Bench
+        ## Pitch Bend
         elif isinstance(event, midi.PitchWheelEvent):
             seqev.type = S.SND_SEQ_EVENT_PITCHBEND
             seqev.data.control.channel = event.channel
@@ -271,15 +283,17 @@ class Sequencer(object):
         else:
             print("Warning :: Unknown event type: %s" % event)
             return None
-            
+
         err = S.snd_seq_event_output(self.client, seqev)
-        if (err < 0): self._error(err)
+        if (err < 0):
+            self._error(err)
         self.drain()
         return self.output_buffer_size - err
 
-    def event_read(self):
+    def event_read(self) -> midi.Event | None:
         ev = S.event_input(self.client)
-        if ev and (ev < 0): self._error(ev)
+        if ev and (ev < 0):
+            self._error(ev)
         if ev and ev.type in (S.SND_SEQ_EVENT_NOTEON, S.SND_SEQ_EVENT_NOTEOFF):
             if ev.type == S.SND_SEQ_EVENT_NOTEON:
                 mev = midi.NoteOnEvent()
@@ -293,7 +307,7 @@ class Sequencer(object):
                 mev.velocity = ev.data.note.velocity
             if ev.time.time.tv_nsec:
                 # convert to ms
-                mev.msdeay = \
+                mev.msdelay = \
                     (ev.time.time.tv_nsec / 1e6) + (ev.time.time.tv_sec * 1e3)
             else:
                 mev.tick = ev.time.tick
@@ -301,40 +315,41 @@ class Sequencer(object):
         else:
             return None
 
+
 class SequencerHardware(Sequencer):
     SequencerName = "__hw__"
     SequencerStream = S.SND_SEQ_OPEN_DUPLEX
     SequencerType = "hw"
     SequencerMode = 0
 
-    class Client(object):
-        def __init__(self, client, name):
+    class Client:
+        def __init__(self, client: int, name: str) -> None:
             self.client = client
             self.name = name
-            self._ports = {}
+            self._ports: dict[str, SequencerHardware.Client.Port] = {}
 
-        def __str__(self):
+        def __str__(self) -> str:
             retstr = '] client(%d) "%s"\n' % (self.client, self.name)
             for port in self:
                 retstr += str(port)
             return retstr
 
-        def add_port(self, port, name, caps):
-            port = self.Port(port, name, caps)
-            self._ports[name] = port
+        def add_port(self, port: int, name: str, caps: int) -> None:
+            port_obj = self.Port(port, name, caps)
+            self._ports[name] = port_obj
 
         def __iter__(self):
-            return self._ports.itervalues()
+            return iter(self._ports.values())
 
-        def __len__(self):
+        def __len__(self) -> int:
             return len(self._ports)
 
-        def get_port(self, key):
+        def get_port(self, key: str) -> SequencerHardware.Client.Port:
             return self._ports[key]
         __getitem__ = get_port
-        
-        class Port(object):
-            def __init__(self, port, name, caps):
+
+        class Port:
+            def __init__(self, port: int, name: str, caps: int) -> None:
                 self.port = port
                 self.name = name
                 self.caps = caps
@@ -343,44 +358,47 @@ class SequencerHardware(Sequencer):
                 self.caps_subs_read = self.caps & S.SND_SEQ_PORT_CAP_SUBS_READ
                 self.caps_subs_write = self.caps & S.SND_SEQ_PORT_CAP_SUBS_WRITE
 
-            def __str__(self):
+            def __str__(self) -> str:
                 flags = []
-                if self.caps_read: flags.append('r')
-                if self.caps_write: flags.append('w')
-                if self.caps_subs_read: flags.append('sender')
-                if self.caps_subs_write: flags.append('receiver')
-                flags = str.join(', ', flags)
-                retstr = ']   port(%d) [%s] "%s"\n' % (self.port, flags, self.name)
+                if self.caps_read:
+                    flags.append('r')
+                if self.caps_write:
+                    flags.append('w')
+                if self.caps_subs_read:
+                    flags.append('sender')
+                if self.caps_subs_write:
+                    flags.append('receiver')
+                flags_str = ', '.join(flags)
+                retstr = ']   port(%d) [%s] "%s"\n' % (self.port, flags_str, self.name)
                 return retstr
 
-
-    def init(self):
-        self._clients = {}
+    def init(self) -> None:
+        self._clients: dict[str, SequencerHardware.Client] = {}
         self._init_handle()
         self._query_clients()
 
     def __iter__(self):
-        return self._clients.itervalues()
+        return iter(self._clients.values())
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._clients)
 
-    def get_client(self, key):
+    def get_client(self, key: str) -> SequencerHardware.Client:
         return self._clients[key]
     __getitem__ = get_client
 
-    def get_client_and_port(self, cname, pname):
+    def get_client_and_port(self, cname: str, pname: str) -> tuple[int, int]:
         client = self[cname]
         port = client[pname]
         return (client.client, port.port)
 
-    def __str__(self):
+    def __str__(self) -> str:
         retstr = ''
         for client in self:
             retstr += str(client)
         return retstr
 
-    def _query_clients(self):
+    def _query_clients(self) -> None:
         self._clients = {}
         S.snd_seq_drop_output(self.client)
         cinfo = S.new_client_info()
@@ -402,53 +420,53 @@ class SequencerHardware(Sequencer):
                 pname = S.snd_seq_port_info_get_name(pinfo)
                 cobj.add_port(port, pname, cap)
 
+
 class SequencerRead(Sequencer):
-    DefaultArguments = {
-      'sequencer_name':'__SequencerRead__',
-      'sequencer_stream':not S.SND_SEQ_NONBLOCK,
-      'alsa_port_caps':S.SND_SEQ_PORT_CAP_WRITE | S.SND_SEQ_PORT_CAP_SUBS_WRITE,
+    DefaultArguments: dict[str, object] = {
+      'sequencer_name': '__SequencerRead__',
+      'sequencer_stream': not S.SND_SEQ_NONBLOCK,
+      'alsa_port_caps': S.SND_SEQ_PORT_CAP_WRITE | S.SND_SEQ_PORT_CAP_SUBS_WRITE,
     }
 
-    def subscribe_port(self, client, port):
+    def subscribe_port(self, client: int, port: int) -> None:
         sender = self._new_address(client, port)
         dest = self._my_address()
         subscribe = self._new_subscribe(sender, dest, read=True)
         S.snd_seq_port_subscribe_set_time_update(subscribe, True)
-        #S.snd_seq_port_subscribe_set_time_real(subscribe, True)
         self._subscribe_port(subscribe)
+
 
 class SequencerWrite(Sequencer):
-    DefaultArguments = {
-      'sequencer_name':'__SequencerWrite__',
-      'sequencer_stream':not S.SND_SEQ_NONBLOCK,
-      'alsa_port_caps':S.SND_SEQ_PORT_CAP_READ | S.SND_SEQ_PORT_CAP_SUBS_READ
+    DefaultArguments: dict[str, object] = {
+      'sequencer_name': '__SequencerWrite__',
+      'sequencer_stream': not S.SND_SEQ_NONBLOCK,
+      'alsa_port_caps': S.SND_SEQ_PORT_CAP_READ | S.SND_SEQ_PORT_CAP_SUBS_READ,
     }
 
-    def subscribe_port(self, client, port):
+    def subscribe_port(self, client: int, port: int) -> None:
         sender = self._my_address()
         dest = self._new_address(client, port)
         subscribe = self._new_subscribe(sender, dest, read=False)
         self._subscribe_port(subscribe)
 
+
 class SequencerDuplex(Sequencer):
-    DefaultArguments = {
-      'sequencer_name':'__SequencerWrite__',
-      'sequencer_stream':not S.SND_SEQ_NONBLOCK,
-      'alsa_port_caps':S.SND_SEQ_PORT_CAP_READ | S.SND_SEQ_PORT_CAP_SUBS_READ |
-                      S.SND_SEQ_PORT_CAP_WRITE | S.SND_SEQ_PORT_CAP_SUBS_WRITE
+    DefaultArguments: dict[str, object] = {
+      'sequencer_name': '__SequencerWrite__',
+      'sequencer_stream': not S.SND_SEQ_NONBLOCK,
+      'alsa_port_caps': S.SND_SEQ_PORT_CAP_READ | S.SND_SEQ_PORT_CAP_SUBS_READ |
+                      S.SND_SEQ_PORT_CAP_WRITE | S.SND_SEQ_PORT_CAP_SUBS_WRITE,
     }
 
-    def subscribe_read_port(self, client, port):
+    def subscribe_read_port(self, client: int, port: int) -> None:
         sender = self._new_address(client, port)
         dest = self._my_address()
         subscribe = self._new_subscribe(sender, dest, read=True)
         S.snd_seq_port_subscribe_set_time_update(subscribe, True)
-        #S.snd_seq_port_subscribe_set_time_real(subscribe, True)
         self._subscribe_port(subscribe)
 
-    def subscribe_write_port(self, client, port):
+    def subscribe_write_port(self, client: int, port: int) -> None:
         sender = self._my_address()
         dest = self._new_address(client, port)
         subscribe = self._new_subscribe(sender, dest, read=False)
         self._subscribe_port(subscribe)
-

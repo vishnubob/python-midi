@@ -1,12 +1,38 @@
-class TempoMap(list):
-    def __init__(self, stream):
-        self.stream = stream
+from __future__ import annotations
 
-    def add_and_update(self, event):
+from collections.abc import MutableSequence
+
+from .events import SetTempoEvent, AbstractEvent
+
+
+class TempoMap(MutableSequence[SetTempoEvent]):
+    def __init__(self, stream: object) -> None:
+        self.stream = stream
+        self._items: list[SetTempoEvent] = []
+
+    def __getitem__(self, index):
+        return self._items[index]
+
+    def __setitem__(self, index, value) -> None:
+        self._items[index] = value
+
+    def __delitem__(self, index) -> None:
+        del self._items[index]
+
+    def __len__(self) -> int:
+        return len(self._items)
+
+    def insert(self, index: int, value: SetTempoEvent) -> None:
+        self._items.insert(index, value)
+
+    def sort(self, *, key=None, reverse: bool = False) -> None:
+        self._items.sort(key=key, reverse=reverse)
+
+    def add_and_update(self, event: SetTempoEvent) -> None:
         self.add(event)
         self.update()
 
-    def add(self, event):
+    def add(self, event: SetTempoEvent) -> None:
         # get tempo in microseconds per beat
         tempo = event.mpqn
         # convert into milliseconds per beat
@@ -15,7 +41,7 @@ class TempoMap(list):
         event.mpt = tempo / self.stream.resolution
         self.append(event)
 
-    def update(self):
+    def update(self) -> None:
         self.sort()
         # adjust running time
         last = None
@@ -25,7 +51,7 @@ class TempoMap(list):
                     int(last.mpt * (event.tick - last.tick))
             last = event
 
-    def get_tempo(self, offset=0):
+    def get_tempo(self, offset: int = 0) -> SetTempoEvent:
         last = self[0]
         for tm in self[1:]:
             if tm.tick > offset:
@@ -33,32 +59,33 @@ class TempoMap(list):
             last = tm
         return last
 
-class EventStreamIterator(object):
-    def __init__(self, stream, window):
+
+class EventStreamIterator:
+    def __init__(self, stream: object, window: float) -> None:
         self.stream = stream
         self.trackpool = stream.trackpool
         self.window_length = window
-        self.window_edge = 0
-        self.leftover = None
+        self.window_edge: float = 0
+        self.leftover: AbstractEvent | None = None
         self.events = self.stream.iterevents()
         # First, need to look ahead to see when the
         # tempo markers end
-        self.ttpts = []
+        self.ttpts: list[int] = []
         for tempo in stream.tempomap[1:]:
             self.ttpts.append(tempo.tick)
         # Finally, add the end of track tick.
         self.ttpts.append(stream.endoftrack.tick)
-        self.ttpts = iter(self.ttpts)
+        self._ttpts_iter = iter(self.ttpts)
         # Setup next tempo timepoint
-        self.ttp = self.ttpts.next()
-        self.tempomap = iter(self.stream.tempomap)
-        self.tempo = self.tempomap.next()
+        self.ttp: int = next(self._ttpts_iter)
+        self._tempomap_iter = iter(self.stream.tempomap)
+        self.tempo = next(self._tempomap_iter)
         self.endoftrack = False
 
-    def __iter__(self):
+    def __iter__(self) -> EventStreamIterator:
         return self
 
-    def __next_edge(self):
+    def __next_edge(self) -> None:
         if self.endoftrack:
             raise StopIteration("")
         lastedge = self.window_edge
@@ -67,7 +94,7 @@ class EventStreamIterator(object):
             # We're past the tempo-marker.
             oldttp = self.ttp
             try:
-                self.ttp = self.ttpts.next()
+                self.ttp = next(self._ttpts_iter)
             except StopIteration:
                 # End of Track!
                 self.window_edge = self.ttp
@@ -77,12 +104,12 @@ class EventStreamIterator(object):
             # account the tempo change.
             msused = (oldttp - lastedge) * self.tempo.mpt
             msleft = self.window_length - msused
-            self.tempo = self.tempomap.next()
+            self.tempo = next(self._tempomap_iter)
             ticksleft = msleft / self.tempo.mpt
             self.window_edge = ticksleft + self.tempo.tick
 
-    def next(self):
-        ret = []
+    def __next__(self) -> list[AbstractEvent]:
+        ret: list[AbstractEvent] = []
         self.__next_edge()
         if self.leftover:
             if self.leftover.tick > self.window_edge:
@@ -95,4 +122,3 @@ class EventStreamIterator(object):
                 return ret
             ret.append(event)
         return ret
-

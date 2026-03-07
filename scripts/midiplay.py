@@ -19,14 +19,14 @@ pattern = midi.read_midifile(filename)
 
 hardware = sequencer.SequencerHardware()
 
-if not client.isdigit:
+if not client.isdigit():
     client = hardware.get_client(client)
 
-if not port.isdigit:
-    port = hardware.get_port(port)    
+if not port.isdigit():
+    port = hardware.get_port(port)
 
 seq = sequencer.SequencerWrite(sequencer_resolution=pattern.resolution)
-seq.subscribe_port(client, port)
+seq.subscribe_port(int(client), int(port))
 
 pattern.make_ticks_abs()
 events = []
@@ -37,7 +37,7 @@ events.sort()
 seq.start_sequencer()
 for event in events:
     buf = seq.event_write(event, False, False, True)
-    if buf == None:
+    if buf is None:
         continue
     if buf < 1000:
         time.sleep(.5)

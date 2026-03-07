@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "midi"
+version = "1.0.0"
+description = "Python MIDI library for reading, writing, and manipulating MIDI files"
+authors = [{name = "Giles Hall", email = "ghall@csh.rit.edu"}]
+license = "MIT"
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Sound/Audio :: MIDI",
+]
+
+[project.scripts]
+mididump = "midi.scripts.mididump:main"
+midiplay = "midi.scripts.midiplay:main"
+mididumphw = "midi.scripts.mididumphw:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"midi" = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,3 +1,4 @@
+"""MIDI file I/O — read and write Standard MIDI Files."""
 from __future__ import annotations
 
 from collections.abc import Iterator
@@ -49,7 +50,7 @@ class FileReader:
         return trksz
 
     def parse_track(self, midifile: BinaryIO, track: Track) -> None:
-        self.RunningStatus: int | None = None
+        self.RunningStatus = None
         trksz = self.parse_track_header(midifile)
         trackdata = iter(midifile.read(trksz))
         while True:
@@ -88,7 +89,8 @@ class FileReader:
         else:
             key = stsmsg & 0xF0
             if key not in EventRegistry.Events:
-                assert self.RunningStatus, "Bad byte value"
+                if not self.RunningStatus:
+                    raise ValueError("Bad byte value")
                 data = []
                 key = self.RunningStatus & 0xF0
                 ev_cls = EventRegistry.Events[key]
@@ -102,7 +104,7 @@ class FileReader:
                 channel = self.RunningStatus & 0x0F
                 data = [next(trackdata) for x in range(ev_cls.length)]
                 return ev_cls(tick=tick, channel=channel, data=data)
-        raise Warning("Unknown MIDI Event: " + str(stsmsg))
+        # unreachable — all branches return above
 
 
 class FileWriter:
@@ -121,7 +123,7 @@ class FileWriter:
 
     def write_track(self, midifile: BinaryIO, track: Track) -> None:
         buf = b''
-        self.RunningStatus: Event | None = None
+        self.RunningStatus = None
         for event in track:
             buf += self.encode_midi_event(event)
         buf = self.encode_track_header(len(buf)) + buf
@@ -157,6 +159,12 @@ class FileWriter:
 
 
 def write_midifile(midifile: str | BinaryIO, pattern: Pattern) -> None:
+    """Write a Pattern to a Standard MIDI File.
+
+    Args:
+        midifile: Destination file path or an open binary file object.
+        pattern: The Pattern to write.
+    """
     if isinstance(midifile, str):
         midifile = open(midifile, 'wb')
     with midifile:
@@ -165,6 +173,18 @@ def write_midifile(midifile: str | BinaryIO, pattern: Pattern) -> None:
 
 
 def read_midifile(midifile: str | BinaryIO) -> Pattern:
+    """Read a Standard MIDI File into a Pattern.
+
+    Args:
+        midifile: Path to a ``.mid`` file, or an open binary file object.
+
+    Returns:
+        A Pattern containing one Track per MIDI track in the file.
+        Ticks are relative (delta times) by default.
+
+    Raises:
+        TypeError: If the file header is not valid MIDI.
+    """
     if isinstance(midifile, str):
         midifile = open(midifile, 'rb')
     with midifile:

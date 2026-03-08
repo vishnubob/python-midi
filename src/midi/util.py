@@ -1,7 +1,16 @@
+"""MIDI variable-length quantity encoding/decoding."""
 from collections.abc import Iterator
 
 
 def read_varlen(data: Iterator[int]) -> int:
+    """Decode a MIDI variable-length quantity from a byte iterator.
+
+    Args:
+        data: Iterator yielding individual bytes.
+
+    Returns:
+        The decoded integer value.
+    """
     NEXTBYTE = 1
     value = 0
     while NEXTBYTE:
@@ -20,21 +29,17 @@ def read_varlen(data: Iterator[int]) -> int:
 
 
 def write_varlen(value: int) -> bytes:
-    b1 = bytes([value & 0x7F])
+    """Encode an integer as a MIDI variable-length quantity.
+
+    Args:
+        value: Non-negative integer to encode.
+
+    Returns:
+        The encoded bytes.
+    """
+    result = [value & 0x7F]
     value >>= 7
-    if value:
-        b2 = bytes([(value & 0x7F) | 0x80])
+    while value:
+        result.append((value & 0x7F) | 0x80)
         value >>= 7
-        if value:
-            b3 = bytes([(value & 0x7F) | 0x80])
-            value >>= 7
-            if value:
-                b4 = bytes([(value & 0x7F) | 0x80])
-                res = b4 + b3 + b2 + b1
-            else:
-                res = b3 + b2 + b1
-        else:
-            res = b2 + b1
-    else:
-        res = b1
-    return res
+    return bytes(reversed(result))

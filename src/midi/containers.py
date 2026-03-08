@@ -1,3 +1,10 @@
+"""MIDI containers — Pattern and Track.
+
+A MIDI file is represented as a hierarchical set of objects: a
+:class:`Pattern` holds one or more :class:`Track` objects, and each
+Track holds a sequence of MIDI events.  Both implement
+:class:`~collections.abc.MutableSequence` so they behave like lists.
+"""
 from __future__ import annotations
 
 from collections.abc import MutableSequence, Iterable
@@ -8,6 +15,18 @@ from .events import AbstractEvent
 
 
 class Pattern(MutableSequence['Track']):
+    """Top-level MIDI container holding one or more tracks.
+
+    Implements :class:`~collections.abc.MutableSequence` — supports
+    indexing, iteration, ``append``, slicing, etc.
+
+    Args:
+        tracks: Initial tracks to include.
+        resolution: Pulses Per Quarter note (PPQ / ticks per beat).
+        format: MIDI file format (0 = single track, 1 = multi-track).
+        tick_relative: Whether event ticks are delta times (``True``)
+            or absolute (``False``).
+    """
     def __init__(self, tracks: Iterable[Track] | None = None,
                  resolution: int = 220, format: int = 1,
                  tick_relative: bool = True) -> None:
@@ -50,17 +69,29 @@ class Pattern(MutableSequence['Track']):
             (self.format, self.resolution, pformat(list(self)))
 
     def make_ticks_abs(self) -> None:
+        """Convert all tracks from relative (delta) ticks to absolute."""
         self.tick_relative = False
         for track in self:
             track.make_ticks_abs()
 
     def make_ticks_rel(self) -> None:
+        """Convert all tracks from absolute ticks to relative (delta)."""
         self.tick_relative = True
         for track in self:
             track.make_ticks_rel()
 
 
 class Track(MutableSequence[AbstractEvent]):
+    """An ordered sequence of MIDI events forming a single track.
+
+    Implements :class:`~collections.abc.MutableSequence` — supports
+    indexing, iteration, ``append``, slicing, etc.
+
+    Args:
+        events: Initial events to include.
+        tick_relative: Whether event ticks are delta times (``True``)
+            or absolute (``False``).
+    """
     def __init__(self, events: Iterable[AbstractEvent] | None = None,
                  tick_relative: bool = True) -> None:
         self.tick_relative = tick_relative
@@ -95,6 +126,11 @@ class Track(MutableSequence[AbstractEvent]):
         self._events.sort(key=key, reverse=reverse)
 
     def make_ticks_abs(self) -> None:
+        """Convert event ticks from relative (delta) to absolute.
+
+        Each event's tick becomes the cumulative sum of all preceding
+        delta ticks.  Has no effect if ticks are already absolute.
+        """
         if self.tick_relative:
             self.tick_relative = False
             running_tick = 0
@@ -103,6 +139,11 @@ class Track(MutableSequence[AbstractEvent]):
                 running_tick = event.tick
 
     def make_ticks_rel(self) -> None:
+        """Convert event ticks from absolute to relative (delta).
+
+        Each event's tick becomes the difference from the previous
+        event.  Has no effect if ticks are already relative.
+        """
         if not self.tick_relative:
             self.tick_relative = True
             running_tick = 0

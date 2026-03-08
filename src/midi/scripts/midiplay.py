@@ -19,14 +19,17 @@ def main() -> None:
 
     hardware = sequencer.SequencerHardware()
 
-    if not client.isdigit():
-        client = hardware.get_client(client)
-
-    if not port.isdigit():
-        port = hardware.get_port(port)
+    try:
+        client_id, port_id = hardware.get_client_and_port(client, port)
+    except KeyError:
+        if client.isdigit() and port.isdigit():
+            client_id, port_id = int(client), int(port)
+        else:
+            print(f"Device not found: {client} / {port}")
+            sys.exit(1)
 
     seq = sequencer.SequencerWrite(sequencer_resolution=pattern.resolution)
-    seq.subscribe_port(int(client), int(port))
+    seq.subscribe_port(client_id, port_id)
 
     pattern.make_ticks_abs()
     events = []

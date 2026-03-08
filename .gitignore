@@ -4,3 +4,5 @@ build
 .*.sw?
 *egg*
 __pycache__
+docs/_build/
+dist

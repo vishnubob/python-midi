@@ -72,7 +72,7 @@ class TestSequencerALSA(unittest.TestCase):
         rseq.start_sequencer()
         wseq.start_sequencer()
         tick = int((self.TEMPO / 60.0) * self.RESOLUTION * delay)
-        send_event = midi.NoteOnEvent(tick=tick, velocity=20, pitch=midi.G_3)
+        send_event = midi.NoteOnEvent(tick=tick, velocity=20, pitch=midi.note_value('G_3'))
         wseq.event_write(send_event, False, False, True)
         recv_event = rseq.event_read()
         while 1:

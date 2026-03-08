@@ -229,80 +229,117 @@ def _build_midi_bytes(event: midi.Event) -> bytes | None:
         return bytes([0xE0 | event.channel, value & 0x7F, (value >> 7) & 0x7F])
     if isinstance(event, midi.AfterTouchEvent):
         return bytes([0xA0 | event.channel, event.pitch, event.value])
+    if isinstance(event, midi.SysexEvent):
+        return bytes([0xF0]) + bytes(event.data) + bytes([0xF7])
+    if isinstance(event, midi.ClockEvent):    return bytes([0xF8])
+    if isinstance(event, midi.StartEvent):    return bytes([0xFA])
+    if isinstance(event, midi.ContinueEvent): return bytes([0xFB])
+    if isinstance(event, midi.StopEvent):     return bytes([0xFC])
+    if isinstance(event, midi.SongPositionPointerEvent):
+        value = event.position
+        return bytes([0xF2, value & 0x7F, (value >> 7) & 0x7F])
+    return None
+
+
+def _msg_length(status: int) -> int:
+    """Return the total message length (including status byte) for a channel message."""
+    msg_type = status & 0xF0
+    if msg_type in (0xC0, 0xD0):
+        return 2
+    return 3
+
+
+def _parse_channel_msg(data: bytes, i: int, status: int) -> midi.Event | None:
+    """Parse a single channel message starting at offset i."""
+    channel = status & 0x0F
+    msg_type = status & 0xF0
+    if msg_type == 0x90 and i + 2 < len(data):
+        return midi.NoteOnEvent(channel=channel, data=[data[i+1], data[i+2]])
+    if msg_type == 0x80 and i + 2 < len(data):
+        return midi.NoteOffEvent(channel=channel, data=[data[i+1], data[i+2]])
+    if msg_type == 0xA0 and i + 2 < len(data):
+        return midi.AfterTouchEvent(channel=channel, data=[data[i+1], data[i+2]])
+    if msg_type == 0xB0 and i + 2 < len(data):
+        return midi.ControlChangeEvent(channel=channel, data=[data[i+1], data[i+2]])
+    if msg_type == 0xC0 and i + 1 < len(data):
+        return midi.ProgramChangeEvent(channel=channel, data=[data[i+1]])
+    if msg_type == 0xD0 and i + 1 < len(data):
+        return midi.ChannelAfterTouchEvent(channel=channel, data=[data[i+1]])
+    if msg_type == 0xE0 and i + 2 < len(data):
+        return midi.PitchWheelEvent(channel=channel, data=[data[i+1], data[i+2]])
     return None
 
 
 def _parse_midi_bytes(data: bytes, timestamp: int) -> midi.Event | None:
-    """Parse raw MIDI bytes into a midi Event."""
-    if not data:
-        return None
-    status = data[0]
-    channel = status & 0x0F
-    msg_type = status & 0xF0
-    if msg_type == 0x90 and len(data) >= 3:
-        ev = midi.NoteOnEvent(channel=channel)
-        ev.pitch = data[1]
-        ev.velocity = data[2]
-        return ev
-    if msg_type == 0x80 and len(data) >= 3:
-        ev = midi.NoteOffEvent(channel=channel)
-        ev.pitch = data[1]
-        ev.velocity = data[2]
-        return ev
-    if msg_type == 0xB0 and len(data) >= 3:
-        ev = midi.ControlChangeEvent(channel=channel)
-        ev.control = data[1]
-        ev.value = data[2]
-        return ev
-    if msg_type == 0xC0 and len(data) >= 2:
-        ev = midi.ProgramChangeEvent(channel=channel)
-        ev.value = data[1]
-        return ev
-    if msg_type == 0xD0 and len(data) >= 2:
-        ev = midi.ChannelAfterTouchEvent(channel=channel)
-        ev.value = data[1]
-        return ev
-    if msg_type == 0xE0 and len(data) >= 3:
-        ev = midi.PitchWheelEvent(channel=channel)
-        ev.data[0] = data[1]
-        ev.data[1] = data[2]
-        return ev
+    """Parse raw MIDI bytes into a midi Event (single message, legacy API)."""
+    events = _parse_all_midi_bytes(data, timestamp)
+    return events[0] if events else None
+
+
+def _parse_all_midi_bytes(data: bytes, timestamp: int) -> list[midi.Event]:
+    """Parse all MIDI messages from a CoreMIDI packet data buffer."""
+    events: list[midi.Event] = []
+    i = 0
+    while i < len(data):
+        status = data[i]
+        if status >= 0xF8:  # system realtime (1 byte)
+            if status == 0xF8: events.append(midi.ClockEvent())
+            elif status == 0xFA: events.append(midi.StartEvent())
+            elif status == 0xFB: events.append(midi.ContinueEvent())
+            elif status == 0xFC: events.append(midi.StopEvent())
+            i += 1
+        elif status == 0xF0:  # SysEx
+            end = i + 1
+            while end < len(data) and data[end] != 0xF7:
+                end += 1
+            events.append(midi.SysexEvent(data=list(data[i+1:end])))
+            i = end + 1
+        elif status == 0xF2:  # Song Position Pointer
+            if i + 2 < len(data):
+                ev = midi.SongPositionPointerEvent()
+                ev.data = [data[i+1], data[i+2]]
+                events.append(ev)
+            i += 3
+        elif status >= 0x80:  # channel message
+            ev = _parse_channel_msg(data, i, status)
+            if ev:
+                events.append(ev)
+            i += _msg_length(status)
+        else:
+            i += 1  # skip unexpected byte
+    return events
+
+
+def find_source_by_name(name: str) -> cm.MIDIEndpointRef | None:
+    """Find a CoreMIDI source endpoint by its display name."""
+    for i in range(cm.get_number_of_sources()):
+        src = cm.get_source(i)
+        if cm.get_endpoint_name(src) == name:
+            return src
     return None
 
 
-class SequencerWrite(Sequencer):
-    """Schedule MIDI output with tick-accurate timestamps via CoreMIDI."""
+class _WriteMixin:
+    """Mixin for MIDI output via CoreMIDI."""
+    _virtual_source = None
+    _dest_endpoint = None
+    OUTPUT_BUFFER_SIZE: int = 65536
 
-    def __init__(self, **kw) -> None:
-        super().__init__(**kw)
-        self._output_port = cm.midi_output_port_create(self._client, "output")
-        self._dest_endpoint = None
-
-    def subscribe_port(self, client: int, port: int) -> None:
-        """Subscribe to a destination endpoint for writing.
-
-        For CoreMIDI, `port` is the MIDIEndpointRef of the destination.
-        `client` is ignored (kept for API compatibility with ALSA).
-        """
-        self._dest_endpoint = cm.MIDIEndpointRef(int(port))
+    def create_virtual_source(self, name: str) -> None:
+        """Create a virtual MIDI source visible to other CoreMIDI clients."""
+        self._virtual_source = cm.midi_source_create(self._client, name)
 
     def subscribe_port_by_index(self, index: int) -> None:
         """Subscribe to a destination by its index in the system destination list."""
         self._dest_endpoint = cm.get_destination(index)
 
-    # CoreMIDI has no output buffer in the ALSA sense; report a large
-    # value so callers that throttle based on remaining buffer space
-    # (e.g. ``if buf < 1000: time.sleep(.5)``) never stall.
-    OUTPUT_BUFFER_SIZE: int = 65536
-
     def event_write(self, event: midi.Event, direct: bool = False,
                     relative: bool = False, tick: bool = False) -> int | None:
         if isinstance(event, midi.EndOfTrackEvent):
             return None
-        if self._dest_endpoint is None:
+        if self._virtual_source is None and self._dest_endpoint is None:
             raise RuntimeError("No destination subscribed")
 
-        # Tempo changes update internal state (no MIDI bytes to send)
         if isinstance(event, midi.SetTempoEvent):
             self.change_tempo(int(event.bpm))
             return self.OUTPUT_BUFFER_SIZE
@@ -311,33 +348,30 @@ class SequencerWrite(Sequencer):
         if midi_bytes is None:
             return None
 
-        # Calculate timestamp
         if direct:
-            timestamp = 0  # immediate
+            timestamp = 0
         elif tick:
             timestamp = self._tick_to_host_time(event.tick)
         else:
-            # msdelay-based scheduling
             ms = getattr(event, 'msdelay', 0)
             nanos = int(ms * 1_000_000)
             timestamp = self._start_host_time + cm.nanos_to_host_time(nanos)
 
-        # Build and send packet
         pktlist = cm.MIDIPacketList()
         pkt = cm.packet_list_init(pktlist)
         pkt = cm.packet_list_add(pktlist, pkt, timestamp, midi_bytes)
-        cm.midi_send(self._output_port, self._dest_endpoint, pktlist)
+        if self._virtual_source is not None:
+            cm.midi_received(self._virtual_source, pktlist)
+        else:
+            cm.midi_send(self._output_port, self._dest_endpoint, pktlist)
         return self.OUTPUT_BUFFER_SIZE
 
 
-class SequencerRead(Sequencer):
-    """Subscribe to MIDI input and read events."""
+class _ReadMixin:
+    """Mixin for MIDI input via CoreMIDI."""
 
-    def __init__(self, **kw) -> None:
-        super().__init__(**kw)
+    def _setup_read(self) -> None:
         self._lock = threading.Lock()
-
-        # Must keep a reference to the callback to prevent GC
         self._read_proc = cm.MIDIReadProc(self._on_read)
         self._input_port = cm.midi_input_port_create(
             self._client, "input", self._read_proc)
@@ -346,22 +380,11 @@ class SequencerRead(Sequencer):
         """Callback invoked by CoreMIDI on a separate thread."""
         pktlist = pktlist_ptr.contents
         for timestamp, data in cm.iter_packets(pktlist):
-            ev = _parse_midi_bytes(data, timestamp)
-            if ev is not None:
+            for ev in _parse_all_midi_bytes(data, timestamp):
                 if self._queue_running and self._start_host_time > 0:
                     ev.tick = self._host_time_to_tick(timestamp)
                 with self._lock:
                     self._read_queue.append(ev)
-
-    def subscribe_port(self, client: int, port: int) -> None:
-        """Subscribe to a source endpoint for reading.
-
-        For CoreMIDI, `port` is the MIDIEndpointRef of the source.
-        `client` is ignored (kept for API compatibility with ALSA).
-        """
-        source = cm.MIDIEndpointRef(int(port))
-        cm.midi_port_connect_source(self._input_port, source)
-        self._source_endpoint = source
 
     def subscribe_port_by_index(self, index: int) -> None:
         """Subscribe to a source by its index in the system source list."""
@@ -376,29 +399,39 @@ class SequencerRead(Sequencer):
         return None
 
 
-class SequencerDuplex(Sequencer):
+class SequencerWrite(_WriteMixin, Sequencer):
+    """Schedule MIDI output with tick-accurate timestamps via CoreMIDI."""
+
+    def __init__(self, **kw) -> None:
+        super().__init__(**kw)
+        self._output_port = cm.midi_output_port_create(self._client, "output")
+
+    def subscribe_port(self, client: int, port: int) -> None:
+        """Subscribe to a destination endpoint for writing."""
+        self._dest_endpoint = cm.MIDIEndpointRef(int(port))
+
+
+class SequencerRead(_ReadMixin, Sequencer):
+    """Subscribe to MIDI input and read events."""
+
+    def __init__(self, **kw) -> None:
+        super().__init__(**kw)
+        self._setup_read()
+
+    def subscribe_port(self, client: int, port: int) -> None:
+        """Subscribe to a source endpoint for reading."""
+        source = cm.MIDIEndpointRef(int(port))
+        cm.midi_port_connect_source(self._input_port, source)
+        self._source_endpoint = source
+
+
+class SequencerDuplex(_ReadMixin, _WriteMixin, Sequencer):
     """Both read and write MIDI events."""
 
     def __init__(self, **kw) -> None:
         super().__init__(**kw)
-        self._lock = threading.Lock()
-        self._read_queue: deque[midi.Event] = deque()
-        self._read_proc = cm.MIDIReadProc(self._on_read)
         self._output_port = cm.midi_output_port_create(self._client, "output")
-        self._input_port = cm.midi_input_port_create(
-            self._client, "input", self._read_proc)
-        self._dest_endpoint = None
-        self._source_endpoint = None
-
-    def _on_read(self, pktlist_ptr, read_proc_ref_con, src_conn_ref_con) -> None:
-        pktlist = pktlist_ptr.contents
-        for timestamp, data in cm.iter_packets(pktlist):
-            ev = _parse_midi_bytes(data, timestamp)
-            if ev is not None:
-                if self._queue_running and self._start_host_time > 0:
-                    ev.tick = self._host_time_to_tick(timestamp)
-                with self._lock:
-                    self._read_queue.append(ev)
+        self._setup_read()
 
     def subscribe_read_port(self, client: int, port: int) -> None:
         source = cm.MIDIEndpointRef(int(port))
@@ -410,37 +443,3 @@ class SequencerDuplex(Sequencer):
 
     def subscribe_port(self, client: int, port: int) -> None:
         self.subscribe_write_port(client, port)
-
-    OUTPUT_BUFFER_SIZE: int = 65536
-
-    def event_write(self, event: midi.Event, direct: bool = False,
-                    relative: bool = False, tick: bool = False) -> int | None:
-        if isinstance(event, midi.EndOfTrackEvent):
-            return None
-        if self._dest_endpoint is None:
-            raise RuntimeError("No destination subscribed")
-        if isinstance(event, midi.SetTempoEvent):
-            self.change_tempo(int(event.bpm))
-            return self.OUTPUT_BUFFER_SIZE
-        midi_bytes = _build_midi_bytes(event)
-        if midi_bytes is None:
-            return None
-        if direct:
-            timestamp = 0
-        elif tick:
-            timestamp = self._tick_to_host_time(event.tick)
-        else:
-            ms = getattr(event, 'msdelay', 0)
-            nanos = int(ms * 1_000_000)
-            timestamp = self._start_host_time + cm.nanos_to_host_time(nanos)
-        pktlist = cm.MIDIPacketList()
-        pkt = cm.packet_list_init(pktlist)
-        pkt = cm.packet_list_add(pktlist, pkt, timestamp, midi_bytes)
-        cm.midi_send(self._output_port, self._dest_endpoint, pktlist)
-        return self.OUTPUT_BUFFER_SIZE
-
-    def event_read(self) -> midi.Event | None:
-        with self._lock:
-            if self._read_queue:
-                return self._read_queue.popleft()
-        return None

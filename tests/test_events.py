@@ -74,7 +74,7 @@ class TestEvents:
         ev2 = ev.copy(tick=200)
         assert ev2.tick == 200
         assert ev2.channel == 1
-        assert ev2.data == [60, 100]
+        assert ev2.data == (60, 100)
 
     def test_text_meta_event(self):
         ev = midi.TextMetaEvent(data=[72, 101, 108, 108, 111])
@@ -83,7 +83,7 @@ class TestEvents:
     def test_unknown_meta_event(self):
         ev = midi.UnknownMetaEvent(metacommand=0x99, data=[1, 2, 3])
         assert ev.metacommand == 0x99
-        assert ev.data == [1, 2, 3]
+        assert ev.data == (1, 2, 3)
 
     def test_event_registry(self):
         assert 0x90 in midi.EventRegistry.Events  # NoteOn

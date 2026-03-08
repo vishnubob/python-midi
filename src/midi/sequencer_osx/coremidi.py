@@ -38,6 +38,7 @@ kMIDIPropertyName = ctypes.c_char_p(b"name")
 # --- MIDIPacket / MIDIPacketList structures ---
 
 class MIDIPacket(Structure):
+    _pack_ = 1
     _fields_ = [
         ('timeStamp', MIDITimeStamp),
         ('length', c_uint16),
@@ -46,6 +47,7 @@ class MIDIPacket(Structure):
 
 
 class MIDIPacketList(Structure):
+    _pack_ = 1
     _fields_ = [
         ('numPackets', c_uint32),
         ('packet', MIDIPacket * 1),

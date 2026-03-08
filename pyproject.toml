@@ -3,10 +3,10 @@ requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "midi"
+name = "python-midi"
 version = "1.0.0"
 description = "Python MIDI library for reading, writing, and manipulating MIDI files"
-authors = [{name = "Giles Hall", email = "ghall@csh.rit.edu"}]
+authors = [{name = "Giles Hall", email = "giles@polymerase.org"}]
 license = "MIT"
 requires-python = ">=3.10"
 classifiers = [
@@ -24,6 +24,15 @@ classifiers = [
 mididump = "midi.scripts.mididump:main"
 midiplay = "midi.scripts.midiplay:main"
 mididumphw = "midi.scripts.mididumphw:main"
+midirecord = "midi.scripts.midirecord:main"
+midilisten = "midi.scripts.midilisten:main"
+
+[project.optional-dependencies]
+docs = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
+    "sphinx-autodoc-typehints>=1.25",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

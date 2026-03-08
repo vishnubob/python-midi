@@ -20,6 +20,11 @@ classifiers = [
     "Topic :: Multimedia :: Sound/Audio :: MIDI",
 ]
 
+[project.urls]
+Documentation = "https://python-midi.readthedocs.io/"
+Repository = "https://github.com/vishnubob/python-midi"
+Issues = "https://github.com/vishnubob/python-midi/issues"
+
 [project.scripts]
 mididump = "midi.scripts.mididump:main"
 midiplay = "midi.scripts.midiplay:main"

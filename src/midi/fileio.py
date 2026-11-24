@@ -164,7 +164,16 @@ def write_midifile(midifile: str | BinaryIO, pattern: Pattern) -> None:
     Args:
         midifile: Destination file path or an open binary file object.
         pattern: The Pattern to write.
+
+    Raises:
+        ValueError: If the pattern or any of its tracks uses absolute ticks.
     """
+    if not pattern.tick_relative or any(
+        not getattr(track, "tick_relative", True) for track in pattern
+    ):
+        raise ValueError("MIDI files require relative ticks. Convert absolute tracks "
+                         "with make_ticks_rel() before writing.")
+
     if isinstance(midifile, str):
         midifile = open(midifile, 'wb')
     with midifile:
